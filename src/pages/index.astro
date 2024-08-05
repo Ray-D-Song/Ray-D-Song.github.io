@@ -1,0 +1,39 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../layouts/Layout.astro';
+import {formatDate} from '../utils/date'
+
+const blogs = await getCollection('blog')
+---
+
+<Layout title="Ray-D-Song's Blog">
+	<main class="flex flex-col justify-center items-center">
+    {
+      blogs.map(blog => (
+        <ul
+          data-slug={blog.slug}
+          class="bg-[#E4DFCD] dark:bg-[#272626] cursor-pointer hover:scale-101 transition-transform transition-ease-in-out transition-duration-300 rounded-lg w-90% md:w-80% lg:w-70% xl:w-60% 2xl:w-50% p-6">
+          <div class="font-700 text-2xl mb-2">
+            {blog.data.title}
+          </div>
+          <div class="xl:line-clamp-2 line-clamp-3 mb-2">
+            {blog.body.slice(0, 300)}
+          </div>
+          <time class="text-sm">
+            {formatDate(blog.data.date)}
+          </time>
+        </ul>
+      ))
+    }
+	</main>
+</Layout>
+
+<script>
+const uls = document.querySelectorAll('ul')
+uls.forEach((ul) => {
+  ul.addEventListener('click', () => {
+    const slug = ul.getAttribute('data-slug')
+    window.location.href = `/blog/${slug}`
+  })
+})
+</script>
