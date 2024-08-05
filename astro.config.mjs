@@ -9,6 +9,7 @@ export default defineConfig({
       injectReset: true,
     })
   ],
+  site: 'https://ray-d-song.com',
   markdown: {
     shikiConfig: {
       wrap: true,
