@@ -9,7 +9,9 @@ const blogs = await getCollection('blog')
 <Layout title="Ray-D-Song's Blog">
 	<main class="flex flex-col justify-center items-center gap-8">
     {
-      blogs.map(blog => (
+      blogs
+      .sort((a, b) => (new Date(b.data.date)).getTime() - (new Date(a.data.date)).getTime())
+      .map(blog => (
         <ul
           data-slug={blog.slug}
           class="bg-[#E4DFCD] dark:bg-[#191B26] cursor-pointer hover:scale-101 transition-transform transition-ease-in-out transition-duration-300 rounded-lg w-90% md:w-80% lg:w-70% xl:w-60% 2xl:w-50% p-6">

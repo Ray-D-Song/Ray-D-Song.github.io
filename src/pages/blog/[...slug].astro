@@ -13,7 +13,7 @@ const { Content } = await blog.render()
 ---
 <Layout title={blog.data.title}>
   <main class="w-full flex flex-col items-center">
-    <div class="w-85% 2xl:w-40% xl:w-50% lg:w-60% md:w-75% flex flex-col items-center">
+    <div class="w-85% 2xl:w-40% xl:w-50% lg:w-60% md:w-75% flex flex-col">
       <h1 class="text-3xl font-600 mt-5 mb-10 w-full text-center">{blog.data.title}</h1>
       <article class="prose">
         <Content />
