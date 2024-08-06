@@ -1,6 +1,5 @@
 import { defineConfig } from 'astro/config';
 import unocss from "@unocss/astro";
-import { presetIcons, presetUno, presetTypography } from 'unocss';
 
 import cloudflare from "@astrojs/cloudflare";
 
@@ -13,7 +12,6 @@ export default defineConfig({
   markdown: {
     syntaxHighlight: 'shiki',
     shikiConfig: {
-      wrap: true,
       themes: {
         light: 'rose-pine-dawn',
         dark: 'tokyo-night'
