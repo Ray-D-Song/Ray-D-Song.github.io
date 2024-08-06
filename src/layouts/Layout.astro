@@ -24,7 +24,7 @@ const { title } = Astro.props;
       }
     </script>
 	</head>
-	<body class="dark:bg-dark bg-light dark:text-dark text-light">
+	<body class="dark:bg-dark bg-light dark:text-dark text-light relative flex flex-col min-h-screen">
     <header class="w-full backdrop-blur-xl fixed left-0 top-0 flex justify-between z-20">
       <div
         class="i-mdi-dinosaur-pixel w-10 h-10 mx-2 my-1 hover:cursor-pointer hover:opacity-80"
@@ -42,10 +42,10 @@ const { title } = Astro.props;
         />
       </div>
     </header>
-    <div class="py-12">
+    <div class="py-20 flex-grow-1">
       <slot />
     </div>
-    <footer class="fixed bottom-0 text-center w-full font-450">
+    <footer class="absolute bottom-0 text-center w-full font-450">
       &copy; 2019 Ray-D-Song. All Rights Reserved
     </footer>
 	</body>
@@ -79,3 +79,14 @@ function toggleTheme() {
   }
 }
 </script>
+
+<style is:global>
+html.dark .astro-code,
+html.dark .astro-code span {
+	color: var(--shiki-dark) !important;
+	background-color: var(--shiki-dark-bg) !important;
+	font-style: var(--shiki-dark-font-style) !important;
+	font-weight: var(--shiki-dark-font-weight) !important;
+	text-decoration: var(--shiki-dark-text-decoration) !important;
+}
+</style>
