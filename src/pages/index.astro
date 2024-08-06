@@ -7,7 +7,7 @@ const blogs = await getCollection('blog')
 ---
 
 <Layout title="Ray-D-Song's Blog">
-	<main class="flex flex-col justify-center items-center">
+	<main class="flex flex-col justify-center items-center gap-8">
     {
       blogs.map(blog => (
         <ul
