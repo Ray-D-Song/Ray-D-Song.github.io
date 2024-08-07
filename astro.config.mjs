@@ -1,13 +1,14 @@
 import { defineConfig } from 'astro/config';
 import unocss from "@unocss/astro";
-
 import cloudflare from "@astrojs/cloudflare";
+
+import sitemap from "@astrojs/sitemap";
 
 // https://astro.build/config
 export default defineConfig({
   integrations: [unocss({
     injectReset: true
-  })],
+  }), sitemap()],
   site: 'https://ray-d-song.com',
   markdown: {
     syntaxHighlight: 'shiki',

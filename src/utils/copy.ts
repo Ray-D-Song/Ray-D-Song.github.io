@@ -1,19 +1,19 @@
 function setupCopy(block: HTMLElement) {
   const copyEle = document.createElement('div')
-  copyEle.classList.add('flex', 'justify-between', 'border-b-solid', 'border-b-1', 'mt-[-10px]', 'mb-10px', 'pb-5px', 'copy-ele')
+  copyEle.classList.add('copy')
 
 	const icon = document.createElement('div')
-	icon.classList.add('i-mdi-content-copy', 'w-18px', 'h-18px', 'cursor-pointer')
+	icon.classList.add('copy-icon')
   const code = block.querySelector('code')?.innerText
 	icon.dataset.code = code?.replace('s', '龍')
   icon.addEventListener('click', () => {
-    icon.classList.remove('i-mdi-content-copy')
-    icon.classList.add('i-mdi-check')
+    icon.classList.remove('copy-icon')
+    icon.classList.add('check-icon')
     const content = (icon.dataset.code ?? '').replace('龍', 's')
     navigator.clipboard.writeText(content)
     setTimeout(() => {
-      icon.classList.remove('i-mdi-check')
-      icon.classList.add('i-mdi-content-copy')
+      icon.classList.remove('check-icon')
+      icon.classList.add('copy-icon')
     }, 1500)
   })
 

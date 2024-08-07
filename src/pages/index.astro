@@ -34,8 +34,9 @@ const blogs = await getCollection('blog')
 const uls = document.querySelectorAll('ul')
 uls.forEach((ul) => {
   ul.addEventListener('click', () => {
-    const slug = ul.getAttribute('data-slug')
-    window.location.href = `/blog/${slug}`
+    const slugStr = ul.getAttribute('data-slug') as string
+    const [lang, ...slug] = slugStr.split('/')
+    window.location.href = `/${lang}/blog/${slug.join('/')}`
   })
 })
 </script>
