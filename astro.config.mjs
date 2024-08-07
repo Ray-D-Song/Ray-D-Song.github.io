@@ -8,7 +8,15 @@ import sitemap from "@astrojs/sitemap";
 export default defineConfig({
   integrations: [unocss({
     injectReset: true
-  }), sitemap()],
+  }), sitemap({
+    i18n: {
+      defaultLocale: 'zh-CN',
+      locales: {
+        'zh-CN': 'zh-CN',
+        en: 'en'
+      }
+    }
+  })],
   site: 'https://ray-d-song.com',
   markdown: {
     syntaxHighlight: 'shiki',
