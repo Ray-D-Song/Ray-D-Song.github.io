@@ -1,4 +1,5 @@
 import { defineConfig, presetIcons, presetUno, presetTypography } from 'unocss'
+import { icons } from '@iconify-json/fe/index.js'
 
 export default defineConfig({
   presets: [
@@ -6,6 +7,7 @@ export default defineConfig({
     presetIcons(),
     presetTypography(),
   ],
+  safelist: Object.keys(icons.icons).map(icon => `i-fe-${icon}`),
   rules: [
     ['text-light', {
       color: '#333333',

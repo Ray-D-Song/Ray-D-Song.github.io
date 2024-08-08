@@ -19,7 +19,7 @@ const { Content } = await blog.render()
   <main class="w-full flex flex-col items-center">
     <div class="w-85% 2xl:w-40% xl:w-50% lg:w-60% md:w-75% flex flex-col items-center">
       <h1 class="text-3xl font-600 mt-5 mb-10 text-center">{blog.data.title}</h1>
-      <article class="prose w-full">
+      <article class="prose w-full font-450 dark:font-unset">
         <Content />
       </article>
     </div>
@@ -51,5 +51,41 @@ codeBlocks.forEach((block) => {
 .line {
   width: 100%;
   white-space: pre-wrap;
+}
+
+blockquote {
+  border-left: 4px solid #4D4E55 !important;
+  background: #F3E2A3;
+  padding-left: 1rem !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  margin-top: 1rem !important;
+  margin-bottom: 1rem !important;
+}
+
+html.dark blockquote {
+  border-left: 4px solid #4D4E55 !important;
+  background: #212121;
+}
+
+article a {
+  margin: 0 10px;
+}
+
+article code {
+  margin: 0 5px;
+}
+
+.prose :where(:not(pre) > code):not(:where(.not-prose,.not-prose *))::before, .prose :where(:not(pre) > code):not(:where(.not-prose,.not-prose *))::after {
+  content: '';
+}
+
+p > code {
+  color: #575279 !important;
+  font-weight: unset !important;
+}
+
+html.dark p > code {
+  color: #7AA2F7 !important;
 }
 </style>

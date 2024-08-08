@@ -1,0 +1,76 @@
+---
+title: '如何创建一个 UnoCSS icon 选择器'
+date: '2024-08-08'
+cover: ''
+tag: ['CSS', 'UnoCSS']
+---
+import UnoCSSIconViewer from '@/components/UnoCSSIconViewer.vue'
+export const iconName = 'iconName'
+
+效果展示:  <UnoCSSIconViewer />
+
+UnoCSS Icon 的使用方法是在标签上添加`i-`开头的 icon 名, 例如  
+`<div class="i-mdi-access-point" />`  
+就会渲染
+<div class="w-full flex justify-center">
+  <div class="i-mdi-access-point w-25px h-25px" />
+</div>
+
+不需要在`public`或者`assets`目录引入额外的 icon 文件或者 js 文件, 还能用 class 来自由控制大小和颜色, 非常方便.  
+
+前端一个很常见的场景是让用户自己选择 icon, 由于UnoCSS 是一个作用于编译时的引擎, 它会根据这个 icon 名生成`纯css icon`, 不会将合集中所有的icon打包进去.  
+
+事实上`<div class={`i-mdi-${iconName}`}>`这种写法也是无效的, 因为编译时无法确认`iconName`的值引擎就不会生成对应的样式.  
+
+要自己实现这个功能, 只需要以下几步:
+## 获取合集中的所有 icon
+以[Feather Icon](https://www.npmjs.com/package/@iconify-json/fe)为例, `npm i -D @iconify-json/fe` 安装iconify集合.  
+
+安装后可以通过`import { icons } from '@iconify-json/fe/index.js'`获取所有的 icon 数据, 结构如下:  
+```javascript
+{
+  // icon 前缀
+  prefix: 'fe',
+  // icon 集合
+  icons: {
+    // icon 名称
+    icon_name: {
+      // 数据
+      body: //...
+    }
+  }
+}
+```
+> 注意, 导入的 icons 是包含 prefix 字段的对象, 而不是 icon 集合对象, 要访问 icon 集合对象需要`icons.icons` 
+接下来我们只需要根据`icons.icons`的key遍历渲染即可, 以Vue为例.  
+```vue
+<script setup lang="ts">
+import { icons } from '@iconify-json/fe/index.js'
+</script>
+
+<template>
+  <div class="dark:bg-[#181818] bg-[#ffffff] w-full h-40 rounded-lg overflow-y-scroll">
+    <div class="grid grid-cols-6 gap-4">
+      <template v-for="icon in Object.keys(icons.icons)">
+        <div class="flex flex-col items-center justify-center cursor-pointer p-4px dark:hover:bg-[#2A2A2A] hover:bg-[#EBEAEA]">
+          <div :class="`i-${icons.prefix}-${icon}`" class="mb-2px" />
+          <div class="text-xs text-center">{{ icon }}</div>
+        </div>
+      </template>
+    </div>
+  </div>
+</template>
+```
+但这个时候 icon 是不可见的, 因为采用了`i-${icons.prefix}-${icon}`这样的动态写法.  
+
+## 添加白名单  
+uno.config.ts 中有[`safelist`](https://unocss.dev/guide/extracting#safelist)字段, 名单内的 class 无论是否使用都会被编译.   
+再一次遍历`icons.icons`的key, 将所有 icon 名添加到`safelist`中.   
+```typescript
+import { icons } from '@iconify-json/fe/index.js'
+
+export default defineConfig({
+  safelist: Object.keys(icons.icons).map(icon => `i-fe-${icon}`),
+})
+```
+这样界面上就能看到所有 icon 了.
