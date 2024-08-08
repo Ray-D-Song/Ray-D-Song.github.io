@@ -74,3 +74,17 @@ export default defineConfig({
 })
 ```
 这样界面上就能看到所有 icon 了.
+
+## 过滤  
+这里还有一个问题, 比如`material-design-icons`这个集合中有七千多个 icon, 但是我们只需要其中的一部分.  
+最简单的做法是加个`filter`, 例如只保留`outline`类型的 icon.  
+```typescript
+import { icons } from '@iconify-json/fe/index.js'
+
+export default defineConfig({
+  safelist: Object
+    .keys(icons.icons)
+    .filter(icon => icon.includes('outline'))
+    .map(icon => `i-fe-${icon}`),
+})
+```
