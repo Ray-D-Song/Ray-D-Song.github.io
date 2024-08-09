@@ -32,7 +32,21 @@ const blogs = await getCollection('blog')
 
 <script>
 const uls = document.querySelectorAll('ul')
+
+const langCache = window.localStorage.getItem('language')
+const userLang = langCache || navigator.language
+
 uls.forEach((ul) => {
+  if(userLang === 'zh-CN') {
+    if(!ul.dataset.slug?.includes('zh-cn')) {
+      ul.style.display = 'none'
+    }
+  } else {
+    if(ul.dataset.slug?.includes('zh-cn')) {
+      ul.style.display = 'none'
+    }
+  }
+
   ul.addEventListener('click', () => {
     const slugStr = ul.getAttribute('data-slug') as string
     const [lang, ...slug] = slugStr.split('/')

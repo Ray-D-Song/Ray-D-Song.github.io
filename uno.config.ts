@@ -7,7 +7,7 @@ export default defineConfig({
     presetIcons(),
     presetTypography(),
   ],
-  safelist: Object.keys(icons.icons).map(icon => `i-fe-${icon}`),
+  safelist: Object.keys(icons.icons).map(icon => `i-fe-${icon}`).slice(0, 30),
   rules: [
     ['text-light', {
       color: '#333333',
