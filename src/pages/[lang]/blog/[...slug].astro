@@ -1,7 +1,8 @@
 ---
 import { getCollection } from 'astro:content';
 import Layout from '../../../layouts/Layout.astro'
-import rt from 'reading-time'
+// @ts-ignore
+import rt from 'reading-time/lib/reading-time'
 
 export async function getStaticPaths() {
   const blogs = await getCollection('blog');

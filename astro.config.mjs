@@ -8,9 +8,11 @@ import mdx from "@astrojs/mdx";
 
 // https://astro.build/config
 export default defineConfig({
-  integrations: [unocss({
+  integrations: [
+    unocss({
     injectReset: true
-  }), sitemap({
+    }),
+    sitemap({
     i18n: {
       defaultLocale: 'zh-CN',
       locales: {
