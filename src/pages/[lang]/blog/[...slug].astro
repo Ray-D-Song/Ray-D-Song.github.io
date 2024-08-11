@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import Layout from '../../../layouts/Layout.astro'
+import rt from 'reading-time'
 
 export async function getStaticPaths() {
   const blogs = await getCollection('blog');
@@ -14,11 +15,17 @@ export async function getStaticPaths() {
 }
 const { blog } = Astro.props
 const { Content } = await blog.render()
+const readingTime = Math.floor(rt(blog.body).minutes)
 ---
 <Layout title={blog.data.title}>
   <main class="w-full flex flex-col items-center">
     <div class="w-85% 2xl:w-40% xl:w-50% lg:w-60% md:w-75% flex flex-col items-center">
-      <h1 class="text-3xl font-600 mt-5 mb-10 text-center">{blog.data.title}</h1>
+      <h1 class="text-3xl font-600 mt-5 mb-2 text-center">{blog.data.title}</h1>
+      <div class="mb-10">
+        <span class="text-sm text-gray-5">{blog.data.date}</span>
+        <span class="text-sm text-gray-5"> • </span>
+        <span class="text-sm text-gray-5">{readingTime}min</span>
+      </div>
       <article class="prose w-full font-450 dark:font-unset">
         <Content />
       </article>
