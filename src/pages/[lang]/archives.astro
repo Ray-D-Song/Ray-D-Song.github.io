@@ -19,11 +19,11 @@ const tags = Array.from(new Set(
 ---
 
 <Layout title="Ray-D-Song's Blog archives">
-  <main class="flex gap-2 p-5 justify-center items-center flex-wrap text-white">
+  <main class="flex gap-2 p-5 justify-center items-center flex-wrap">
     {
       tags.map((tag, idx) => (
         <a
-          class="min-w-20 h-10 rounded-3xl flex justify-center items-center p-2 cursor-pointer animate-fade-in brightness-65 hover:brightness-100 transition duration-300" 
+          class="min-w-20 h-10 rounded-3xl flex justify-center items-center p-2 cursor-pointer animate-fade-in opacity-70 hover:opacity-100 transition duration-300" 
           href={`/${lang}/${tag}`}
           >
           {tag}
