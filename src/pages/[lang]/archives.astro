@@ -1,7 +1,6 @@
 ---
 import { getCollection } from 'astro:content'
 import Layout from '../../layouts/Layout.astro'
-import {colors} from '../../utils/tagColor'
 
 export async function getStaticPaths() {
   return [
@@ -13,6 +12,7 @@ const {lang} = Astro.params
 
 const tags = Array.from(new Set(
   (await getCollection('blog'))
+    .filter(blog => blog.slug.startsWith(`${lang}`))
     .map(blog => blog.data.tag)
     .flat()
 ))
@@ -24,10 +24,7 @@ const tags = Array.from(new Set(
       tags.map((tag, idx) => (
         <a
           class="min-w-20 h-10 rounded-3xl flex justify-center items-center p-2 cursor-pointer animate-fade-in brightness-65 hover:brightness-100 transition duration-300" 
-          style={
-          `background-color: ${colors[idx % colors.length]};`
-          }
-          href={`/zh-cn/${tag}`}
+          href={`/${lang}/${tag}`}
           >
           {tag}
         </a>
