@@ -63,6 +63,9 @@ const { title } = Astro.props;
             <button data-lang="en" class="lang-btn hover:bg-#FAF4ED dark:hover:bg-[#191B26] w-full">English</button>
           </div>
         </div>
+        <div 
+          class="action-btn i-mdi-apps w-6 h-6 m-2 hover:cursor-pointer hover:opacity-80"
+        />
         <div
           class="action-btn i-mdi-github w-6 h-6 m-2 hover:cursor-pointer hover:opacity-80"
         />
@@ -85,9 +88,12 @@ const { title } = Astro.props;
 
 <script>
 const actionBtns = document.querySelectorAll('.action-btn')
+const currentLang = window.localStorage.getItem('language') || 'zh-CN'
 actionBtns.forEach((btn) => {
   btn.addEventListener('click', () => {
     switch (btn.classList[1]) {
+      case 'i-mdi-apps':
+        window.location.href = `/${currentLang.toLowerCase()}/archives`
       case 'i-mdi-github':
         window.open('https://github.com/ray-d-song')
       break

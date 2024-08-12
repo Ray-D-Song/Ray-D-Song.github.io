@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import Layout from '../layouts/Layout.astro';
 import {formatDate} from '../utils/date'
+import Card from '@/components/Card.astro';
 
 const blogs = await getCollection('blog')
 ---
@@ -12,19 +13,7 @@ const blogs = await getCollection('blog')
       blogs
       .sort((a, b) => (new Date(b.data.date)).getTime() - (new Date(a.data.date)).getTime())
       .map(blog => (
-        <ul
-          data-slug={blog.slug}
-          class="bg-[#E4DFCD] dark:bg-[#191B26] cursor-pointer hover:scale-101 transition-transform transition-ease-in-out transition-duration-300 rounded-lg w-90% md:w-80% lg:w-70% xl:w-60% 2xl:w-50% p-6">
-          <div class="font-700 text-2xl mb-2">
-            {blog.data.title}
-          </div>
-          <div class="xl:line-clamp-2 line-clamp-3 mb-2">
-            {blog.body.slice(0, 300)}
-          </div>
-          <time class="text-sm">
-            {formatDate(blog.data.date)}
-          </time>
-        </ul>
+        <Card blog={blog} />
       ))
     }
 	</main>
@@ -47,10 +36,5 @@ uls.forEach((ul) => {
     }
   }
 
-  ul.addEventListener('click', () => {
-    const slugStr = ul.getAttribute('data-slug') as string
-    const [lang, ...slug] = slugStr.split('/')
-    window.location.href = `/${lang}/blog/${slug.join('/')}`
-  })
 })
 </script>
