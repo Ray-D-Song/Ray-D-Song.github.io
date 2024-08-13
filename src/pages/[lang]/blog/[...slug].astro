@@ -15,12 +15,13 @@ export async function getStaticPaths() {
   })
 }
 const { blog } = Astro.props
+const {lang} = Astro.params
 const { Content } = await blog.render()
 const readingTime = Math.floor(rt(blog.body).minutes)
 const coverVisible = blog.data.cover.length > 0
 const remark = blog.data.remark
 ---
-<Layout title={blog.data.title}>
+<Layout title={blog.data.title} lang={lang}>
   <main class="w-full flex flex-col items-center">
     <div class="w-85% 2xl:w-40% xl:w-50% lg:w-60% md:w-75% flex flex-col items-center">
       {
