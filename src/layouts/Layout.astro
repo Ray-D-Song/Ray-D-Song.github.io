@@ -2,16 +2,17 @@
 interface Props {
 	title: string;
   lang: string;
+  desc: string;
 }
 
-const { title, lang } = Astro.props;
+const { title, lang, desc} = Astro.props;
 ---
 
 <!doctype html>
 <html lang={lang}>
 	<head>
 		<meta charset="UTF-8" />
-		<meta name="description" content="Explore Ray-D-Song's Blog for insights on programming in both Chinese and English." />
+		<meta name="description" content={desc} />
 		<meta name="viewport" content="width=device-width" />
     <meta name="keywords" content="programming, vue, vite, javascript, typescript, nodejs, web development, ray-d-song" />
     <link rel="sitemap" href="/sitemap-index.xml" />
@@ -68,6 +69,9 @@ const { title, lang } = Astro.props;
         <div 
           class="action-btn i-mdi-apps w-6 h-6 m-2 hover:cursor-pointer hover:opacity-80"
         />
+        <div 
+          class="action-btn i-mdi-twitter w-6 h-6 m-2 hover:cursor-pointer hover:opacity-80"
+        />
         <div
           class="action-btn i-mdi-github w-6 h-6 m-2 hover:cursor-pointer hover:opacity-80"
         />
@@ -96,6 +100,8 @@ actionBtns.forEach((btn) => {
     switch (btn.classList[1]) {
       case 'i-mdi-apps':
         window.location.href = `/${currentLang.toLowerCase()}/archives`
+      case 'i-mdi-twitter':
+        window.open('https://x.com/RaySong19184922')
       case 'i-mdi-github':
         window.open('https://github.com/ray-d-song')
       break

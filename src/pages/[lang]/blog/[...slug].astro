@@ -21,7 +21,7 @@ const readingTime = Math.floor(rt(blog.body).minutes)
 const coverVisible = blog.data.cover.length > 0
 const remark = blog.data.remark
 ---
-<Layout title={blog.data.title} lang={lang}>
+<Layout title={blog.data.title} lang={lang} desc={blog.body.slice(0, 100)}>
   <main class="w-full flex flex-col items-center">
     <div class="w-85% 2xl:w-40% xl:w-50% lg:w-60% md:w-75% flex flex-col items-center">
       {
