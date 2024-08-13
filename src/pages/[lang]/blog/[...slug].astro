@@ -17,7 +17,7 @@ export async function getStaticPaths() {
 const { blog } = Astro.props
 const {lang} = Astro.params
 const { Content } = await blog.render()
-const readingTime = Math.floor(rt(blog.body).minutes)
+const readingTime = Math.ceil(rt(blog.body).minutes)
 const coverVisible = blog.data.cover.length > 0
 const remark = blog.data.remark
 ---
