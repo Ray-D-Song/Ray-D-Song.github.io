@@ -6,6 +6,7 @@ interface Props {
     data: {
       title: string;
       date: string;
+      tag: string[];
     };
     body: string;
   }
@@ -23,9 +24,20 @@ const { blog } = Astro.props;
   <p class="xl:line-clamp-2 line-clamp-3 mb-2">
     {blog.body.slice(0, 300)}
   </p>
-  <time class="text-sm">
-    {formatDate(blog.data.date)}
-  </time>
+  <p class="w-full flex justify-between items-center">
+    <time class="text-sm">
+      {formatDate(blog.data.date, false)}
+    </time>
+    <span>
+      {
+        blog.data.tag.map(item => (
+          <a class="ml-2px text-sm">
+            <span class="mr-2px">#</span>{item}
+          </a>
+        ))
+      }
+    </span>
+  </p>
 </ul>
 
 <script>

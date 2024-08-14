@@ -1,5 +1,5 @@
 ---
-import { getCollection } from 'astro:content'
+import { getTags } from '@/utils/tag'
 import Layout from '../../layouts/Layout.astro'
 
 export async function getStaticPaths() {
@@ -9,13 +9,7 @@ export async function getStaticPaths() {
   ]
 }
 const {lang} = Astro.params
-
-const tags = Array.from(new Set(
-  (await getCollection('blog'))
-    .filter(blog => blog.slug.startsWith(`${lang}`))
-    .map(blog => blog.data.tag)
-    .flat()
-))
+const tags = await getTags(lang)
 ---
 
 <Layout title="Ray-D-Song's Blog archives" lang={lang} desc="Explore Ray-D-Song's Blog for insights on programming">
