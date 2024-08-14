@@ -15,12 +15,13 @@ export async function getStaticPaths() {
   })
 }
 const { blog } = Astro.props
+const {lang} = Astro.params
 const { Content } = await blog.render()
-const readingTime = Math.floor(rt(blog.body).minutes)
+const readingTime = Math.ceil(rt(blog.body).minutes)
 const coverVisible = blog.data.cover.length > 0
 const remark = blog.data.remark
 ---
-<Layout title={blog.data.title}>
+<Layout title={blog.data.title} lang={lang} desc={blog.body.slice(0, 100)}>
   <main class="w-full flex flex-col items-center">
     <div class="w-85% 2xl:w-40% xl:w-50% lg:w-60% md:w-75% flex flex-col items-center">
       {
@@ -40,9 +41,18 @@ const remark = blog.data.remark
         <span class="text-sm text-gray-5"> • </span>
         <span class="text-sm text-gray-5">{readingTime}min</span>
       </div>
-      <article class="prose w-full font-450 dark:font-unset">
+      <article class="prose w-full">
         <Content />
       </article>
+      <div id="tcomment"></div>
+      <script is:inline>
+        const lang = location.pathname.split('/').pop()
+        twikoo.init({
+          envId: 'https://twikoo-cloudflare.songraysmail.workers.dev',
+          el: '#tcomment',
+          lang,
+        })
+      </script>
     </div>
   </main>
 </Layout>
@@ -108,5 +118,9 @@ p > code {
 
 html.dark p > code {
   color: #7AA2F7 !important;
+}
+
+.twikoo {
+  margin-top: 60px;
 }
 </style>

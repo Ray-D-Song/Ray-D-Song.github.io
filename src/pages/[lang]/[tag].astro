@@ -23,7 +23,7 @@ const blogs = (await getCollection('blog'))
   .filter(blog => blog.slug.includes(lang))
 ---
 
-<Layout title={tag??`Ray-D-Song's Blog`}>
+<Layout title={tag??`Ray-D-Song's Blog`} lang={lang} desc="Explore Ray-D-Song's Blog for insights on programming">
   <main class="flex justify-center items-center flex-col gap-8">
     <div class="text-xl font-500 w-full flex justify-center">
       <h1 class="w-20% w-90% md:w-80% lg:w-70% xl:w-60% 2xl:w-50% border-b-solid dark:border-b-gray-1 border-b-gray-8 border-b pb-2">
