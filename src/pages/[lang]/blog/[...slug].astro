@@ -44,6 +44,15 @@ const remark = blog.data.remark
       <article class="prose w-full font-450 dark:font-unset">
         <Content />
       </article>
+      <div id="tcomment"></div>
+      <script is:inline>
+        const lang = location.pathname.split('/').pop()
+        twikoo.init({
+          envId: 'https://twikoo-cloudflare.songraysmail.workers.dev',
+          el: '#tcomment',
+          lang,
+        })
+      </script>
     </div>
   </main>
 </Layout>
@@ -109,5 +118,9 @@ p > code {
 
 html.dark p > code {
   color: #7AA2F7 !important;
+}
+
+.twikoo {
+  margin-top: 60px;
 }
 </style>

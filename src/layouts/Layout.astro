@@ -44,6 +44,7 @@ const { title, lang, desc} = Astro.props;
         handleLanguage()
       }
     </script>
+    <script is:inline src="https://cdn.jsdelivr.net/npm/twikoo@1.6.39/dist/twikoo.min.js" integrity="sha384-W0w7IGKejOSolaFiI1yMf6mq2m+35Jc4MKiRAljmbCezcYLoo2c3W4xlrmqqwbqC" crossorigin="anonymous"></script>
 	</head>
 	<body class="!hidden dark:bg-dark bg-light dark:text-dark text-light relative flex flex-col min-h-screen w-full">
     <header class="w-full backdrop-blur-xl fixed left-0 top-0 flex justify-between z-20">
@@ -201,5 +202,9 @@ p > code {
 
 .line:first-child {
   margin-left: -5px;
+}
+
+.tk-input textarea {
+  min-height: 100px;
 }
 </style>
