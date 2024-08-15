@@ -1,6 +1,5 @@
 import { defineConfig } from 'astro/config';
 import unocss from "@unocss/astro";
-import cloudflare from "@astrojs/cloudflare";
 import sitemap from "@astrojs/sitemap";
 import vue from "@astrojs/vue";
 
@@ -32,5 +31,4 @@ export default defineConfig({
     }
   },
   output: "static",
-  adapter: cloudflare()
 });
