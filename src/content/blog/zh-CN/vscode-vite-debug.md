@@ -1,5 +1,5 @@
 ---
-title: 'vscode debug vite 前端项目'
+title: 'vscode 如何 debug 前端项目'
 date: '2024-8-12'
 cover: ''
 tag: ['frontend', 'vite']
@@ -30,3 +30,16 @@ vscode 的 debug 使用项目根目录下的`.vscode/launch.json`文件进行配
 }
 ```
 接下来只需要点击`Run and Debug`按钮, 点击`Start Debugging`, 只要端口一致, 程序集就会在你的断点处暂停.
+
+## source map
+source map 是源代码和编译产物之间的映射关系文件, 关于 source map, 具体可以看[阮一峰老师的这篇博客](https://www.ruanyifeng.com/blog/2013/01/javascript_source_map.html).  
+如果你的项目需要经过编译运行, 在没有 sourcemap 的情况下, vscode 断点会提示`Unbound breakpoint(断点未绑定)`, 因为实际运行的代码是编译后的结果, vscode 没法通过你源码中的断点定位到实际运行代码中的位置.  
+
+vite 项目和常见插件都默认生成 map, 如果你的项目是纯 Typescript 编写, 那需要在 tsconfig.json 中增加:  
+```json
+{
+  "compilerOptions": {
+    "sourceMap": true,
+  }
+}
+```
