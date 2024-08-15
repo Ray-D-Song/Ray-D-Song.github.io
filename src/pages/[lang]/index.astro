@@ -1,11 +1,18 @@
 ---
-import { getCollection } from 'astro:content';
-import Layout from '../layouts/Layout.astro';
-import {formatDate} from '../utils/date'
 import Card from '@/components/Card.astro';
+import Layout from '@/layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  return [
+    { params: { lang: 'zh-cn' } },
+    { params: { lang: 'en' } },
+  ]
+}
+const {lang} = Astro.params
 
 const blogs = (await getCollection('blog'))
-  .filter(blog => blog.slug.startsWith('zh-cn'))
+  .filter(blog => blog.slug.startsWith(lang))
   .sort((a, b) => (new Date(b.data.date)).getTime() - (new Date(a.data.date)).getTime())
 ---
 
@@ -19,11 +26,3 @@ const blogs = (await getCollection('blog'))
     }
 	</main>
 </Layout>
-
-<script>
-const langCache = window.localStorage.getItem('language')
-const userLang = langCache || navigator.language
-if(userLang !== 'zh-CN') {
-  window.location.href = '/en'
-}
-</script>

@@ -40,7 +40,8 @@ const { title, lang, desc} = Astro.props;
         }
       }
       const pathname = window.location.pathname
-      if(pathname !== '/' && pathname !== '') {
+      const whiteList = ['/zh-cn', '/en', '', '/']
+      if(!whiteList.includes(pathname)) {
         handleLanguage()
       }
     </script>
