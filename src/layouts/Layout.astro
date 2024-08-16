@@ -27,23 +27,6 @@ const { title, lang, desc} = Astro.props;
         document.documentElement.classList.value = 'light'
       }
       document.body.classList.remove('!hidden')
-
-      function handleLanguage() {
-        const languageCache = window.localStorage.getItem('language')
-        const href = window.location.href
-        const blogPath = pathname.split('/').slice(2).join('/')
-        if(languageCache === 'zh-CN' && !href.includes('zh-cn')) {
-          window.location.href = `/zh-cn/${blogPath}`
-        }
-        if(languageCache === 'en' && !href.includes('en')) {
-          window.location.href = `/en/${blogPath}`
-        }
-      }
-      const pathname = window.location.pathname
-      const whiteList = ['/zh-cn', '/en', '', '/']
-      if(!whiteList.includes(pathname)) {
-        handleLanguage()
-      }
     </script>
     <script is:inline src="https://cdn.jsdelivr.net/npm/twikoo@1.6.39/dist/twikoo.min.js" integrity="sha384-W0w7IGKejOSolaFiI1yMf6mq2m+35Jc4MKiRAljmbCezcYLoo2c3W4xlrmqqwbqC" crossorigin="anonymous"></script>
 	</head>
@@ -130,18 +113,33 @@ function toggleTheme() {
 }
 </script>
 
-<script>
-const iconContainer = document.querySelector<HTMLElement>('#icon-container')
-document.querySelector<HTMLElement>('#lang-icon')?.addEventListener('click', () => {
+<script is:inline>
+const iconContainer = document.querySelector('#icon-container')
+document.querySelector('#lang-icon')?.addEventListener('click', () => {
   if(iconContainer)
     iconContainer.style.display = iconContainer.style.display === 'none' ? 'block' : 'none'
 })
 
-document.querySelectorAll<HTMLButtonElement>('.lang-btn').forEach((btn) => {
+const langCache = window.localStorage.getItem('language')
+const pathname = window.location.pathname
+document.querySelectorAll('.lang-btn').forEach((btn) => {
   btn.addEventListener('click', () => {
-    const lang = btn.dataset.lang as string
+    const lang = btn.dataset.lang
+    if(langCache === lang) return
+
     window.localStorage.setItem('language', lang)
-    window.location.reload()
+    if(pathname === '/' && lang === 'en') {
+      window.location.href = '/en'
+    }
+    if(pathname === '/en') {
+      window.location.href = '/'
+    }
+    if(pathname === '/zh-cn') {
+      window.location.href = '/en'
+    }
+
+    const newPath =  `/${lang.toLowerCase()}/${pathname.split('/').slice(2).join('/')}`
+    window.location.href = newPath
   })
 })
 </script>
