@@ -43,3 +43,25 @@ vite 项目和常见插件都默认生成 map, 如果你的项目是纯 Typescri
   }
 }
 ```
+
+## 跳过 node_modules
+在 debug 的时候经常会跳到 node_modules 或者 node_internals 等代码逻辑无关的部分.  
+vscode 提供了`skiFiles`用于跳过不想进入的逻辑.  
+例如跳过 node_modules 和 node_internals 的配置如下:  
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      // ...
+      "skipFiles": [
+        "${workspaceFolder}/node_modules/**/*.js",
+        "${workspaceFolder}\\node_modules\\**\\*.js",
+        "<node_internals>/**/*.js",
+        "<node_internals>\\**\\*.js",
+      ],
+    }
+  ]
+}
+```
+> 以上这种写法是因为 skipFiles 路径配置取决于你的平台(unix-like 还是 windows), 所以一劳永逸的方法就是两种都写上.
