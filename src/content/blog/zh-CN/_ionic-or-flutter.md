@@ -4,11 +4,11 @@ date: '2024-8-15'
 cover: ''
 tag: ['frontend', 'App', 'cross platform']
 ---
+
 公司有一个 PDA app, 之前是采购然后做一些定制. 很难用, 安卓、PDA 终端、IOS 上都有坑.  
 最难受的是源码是早期版本的 uniapp, 坑多不好改, 没办法只能另起炉灶.
 
 ## 简介
-之前我使用过 React Native, 
 
 ## 和 RN 的区别
 ionic 使用一个叫 capacitor 的 runtime
@@ -33,7 +33,7 @@ HTML 有个原生属性 autofocus, uniapp 一直在自动聚焦上一直有 bug.
 * 设置焦点之前需要用户交互(例如让用户点一下屏幕)
 * 
 
-这种方式非常不 Vue. 就像 RN 中很多用法也非常不 React.  
+这种方式非常不 Vue. 就像 RN 中很多东西也非常不 React.  
 其结果就是这些 Hybrid 技术只是很浅层的使用了这些 web 框架的`写法`, 而不是
 ```vue
 <template>
@@ -53,3 +53,4 @@ HTML 有个原生属性 autofocus, uniapp 一直在自动聚焦上一直有 bug.
   }
 </script>
 ```
+说到底, 大家想要的就是一个mobile electron, 全屏浏览器加上调用原生功能接口的能力, 而不是
