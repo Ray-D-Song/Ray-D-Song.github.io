@@ -110,7 +110,7 @@ export default {
 
 /** index.test.ts */
 
-// 将第一个用例标记为 skit, 跳过该测试
+// Mark the first test case as skit, skip the test
 it.skip('should return path param', async () => {
   const response = await worker.fetch('https://thorn.com/post/1701870426245')
   const str = await response.text()

@@ -36,7 +36,7 @@ Modify `package.json`, add a `test:unit` command under `scripts`
 Testing a phone number validation function
 ```ts
 /** /reg/phone.ts */
-// 校验是否国内手机号
+// Check if it is a Chinese mobile phone number
 export function regChinesePhoneNumber(phoneNumber: string) {
   const regex = /^1[3456789]\d{9}$/
   return regex.test(phoneNumber)
@@ -114,7 +114,7 @@ import minimist from 'minimist'
 import { readFileSync, writeFileSync } from 'fs'
 
 function main() {
-  // 使用 minimist 处理参数
+  // Using minimist to handle parameters
   const args = minimist(process.argv.slice(2))
   const { type, path } = args
   let temp = ''
@@ -122,7 +122,7 @@ function main() {
     temp = readFileSync('./src/bin/dist/table', 'utf-8') 
   }
   writeFileSync(path, temp)
-  console.log('\n创建完成')
+  console.log('\nsuccess')
 }
 
 main()
@@ -139,10 +139,10 @@ function create(args) {
   if(type === 'table') {
     temp = readFileSync('./src/bin/dist/table', 'utf-8') 
   } else {
-    throw '当前仅支持生成 table 类型'
+    throw 'only support table'
   }
   writeFileSync(path, temp)
-  console.log('\n创建完成')
+  console.log('\nsuccess')
 }
 
 export default create
@@ -177,7 +177,7 @@ describe('bin scaffold module', () => {
           path: '/Users/ray-d-song/temp/SourceCode/vitest-tutorial-sourcecode/src/bin/__test__/dialog.vue'
         })
       } catch(e) {
-        expect(e).toBe('当前仅支持生成 table 类型')
+        expect(e).toBe('only support table')
         const product = readFileSync('/Users/ray-d-song/temp/SourceCode/vitest-tutorial-sourcecode/src/bin/__test__/dialog.vue', 'utf-8')
         expect(product).toBeUndefined
       }
@@ -223,9 +223,9 @@ import { defineComponent, nextTick, ref } from 'vue'
 import { mount } from '@vue/test-utils'
 import { vDebounce } from '../directives'
 
-// 使用 defineComponent 定义测试组件
-// 该 api 除了 template 作为字符串传递外
-// 还可以使用 tsx 获得更好的代码提示
+// Define the test component using defineComponent
+// In addition to passing the template as a string
+// You can also use tsx to get better code hints
 const tc = defineComponent({
   setup() {
     const num = ref(0)
@@ -241,7 +241,7 @@ const tc = defineComponent({
 })
 
 describe('custom directives', async () => {
-  // vue-test-utils 的 mount api, 将组件实例化
+  // The mount api of vue-test-utils instantiates the component
   it('debounce submit', async () => {
     const wrapper = mount(tc, {
       global: {
@@ -251,23 +251,30 @@ describe('custom directives', async () => {
       }
     })
 
-    // 每过 200 毫秒点击一次 button
+    // click button every 200ms
     const interval = setInterval(async () => {
-      // find api 查找目标元素
+      // use find api search target
       await wrapper.find('button').trigger('click')
     }, 200)
-    // 阻塞 1000 秒, 让点击事件在 1 秒内执行 4 次
+    /**
+     * Block for 1000 seconds
+     * let the click event execute 4 times 
+     * within 1 second
+     */ 
     await new Promise(resolve => setTimeout(resolve, 1000))
 
     clearInterval(interval)
 
-    // 阻塞 700 秒, 等待函数执行
+    /**
+     * Block for 700 seconds, 
+     * waiting for the function to execute
+     */
     await new Promise(resolve => setTimeout(resolve, 700))
-    // 确保组件重新渲染
+    // ensure component rerender
     await nextTick()
-    // 获取目标元素
+    // get target element
     const btn = wrapper.get('button')
-    // 对目标元素的文本进行断言
+    // Assert the text of the target element
     expect(btn.text()).toBe('num: 1')
   })
 })
@@ -332,7 +339,7 @@ import { describe, expect, it } from 'vitest'
 describe('mock', async () => {
   it('mock api', async () => {
     const response = await fetch('https://thorn.mock/test') 
-    // 使用 toEqual 来比较对象值
+    // Use toEqual to compare object values
     expect(await response.json()).toEqual({
       msg: 'hey'
     })
@@ -372,11 +379,11 @@ In the setup.ts file, we call Vitest hooks:
 import { server } from './mocks/server'
 import { beforeAll, afterAll, afterEach } from 'vitest'
 
-// 在每一次测试开始前开启服务器
+// Start the server before each test begins
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
-// 在每一次测试结束后关闭服务器
+// Close the server after each test ends
 afterAll(() => server.close())
-// 在每一个用例结束后重置 handlers
+// Reset handlers after each test case
 afterEach(() => server.resetHandlers())
 ```
 When running the tests, it will show that the tests have passed.
@@ -396,11 +403,12 @@ export function regChinesePhoneNumber(phoneNumber: string) {
   return regex.test(phoneNumber)
 }
 
-// 内联测试应该放在源码的底部
+// Inline tests should be 
+// placed at the bottom of the source code
 /**
- * 为了解决 ts 报错
- * 需要在 tsconfig.json 中添加
- * {"compilerOptions": {"types": ["vitest/importMeta"]}}
+  * To solve the ts error
+  * Need to add in tsconfig.json
+  * {"compilerOptions": {"types": ["vitest/importMeta"]}}
  */
 if(import.meta.vitest) {
   const { it, expect } = import.meta.vitest
@@ -433,14 +441,13 @@ Type information in TypeScript is erased during compilation, meaning that no mat
 Overall, type testing is not commonly used, and here we only briefly introduce the general process.
 ```ts
 /** /src/types/MPick.d.ts */
-// 实现一个自己的 Pick 方法
 export type MPick<T, K extends keyof T> = {
   [P in K]: T[P]
 }
 
 /** /src/types/__test__/MPick.test-d.ts */
 
-// vitest 会自动扫描 .test-d.ts 命令的文件
+// vitest will scan .test-d.ts file auto
 import { expectTypeOf, test } from 'vitest'
 import type { MPick } from '../MPick'
 
