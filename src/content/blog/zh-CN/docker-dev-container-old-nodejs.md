@@ -6,8 +6,11 @@ tag: ['Docker', 'frontend']
 ---
 
 最近要改一个老项目, vue2 和 node.js14.  
+
 我现在使用的 runtime 版本管理器是[asdf](https://asdf-vm.com/), m2 macOS 安装 v14 的 node.js 是从源码构建.  
+
 灾难开始了, 编译 node.js 12 需要 python2.7 或 3.9, macOS 系统自带的 python 版本是 3.12.  
+
 然后我又去用 asdf 编译 2.7.18 的 python. 正当我满心欢喜觉得可以使用的时候, 编译失败了!  
 
 ![build fail](https://r2.ray-d-song.com/2024/08/c0f4875873e59539cbe39404361ee244.png)
@@ -32,7 +35,7 @@ Dev Container 就是使用容器作为开发环境, 再使用 vscode、neovim �
 
 所以这里我选择使用`Dockerfile`, Docker 通过读取 Dockerfile 中的指令来自动构建镜像.  
 
-```Dockerfile
+```dockerfile
 # nodejs
 # version: v14 -> v20
 

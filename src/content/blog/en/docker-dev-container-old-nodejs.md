@@ -32,7 +32,7 @@ However, the drawback of this approach is that distribution must be done at the 
 
 Therefore, I choose to use a `Dockerfile` here. Docker automatically builds images by reading instructions in the Dockerfile.  
 
-```Dockerfile
+```dockerfile
 # nodejs
 # version: v14 -> v20
 
