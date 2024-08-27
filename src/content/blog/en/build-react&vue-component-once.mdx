@@ -5,22 +5,19 @@ cover: ''
 tag: ['frontend', 'React', 'Vue']
 ---
 
-I recently wrote about the [UnoCSS icon selector](/zh-cn/blog/unocss-icon-viewer) and wanted to create a library that can be used in both React and Vue.
+Last time I wrote an [UnoCSS icon selector](/zh-cn/blog/unocss-icon-viewer), hoping to create a library that can be used in both React and Vue.
 
-My initial thought was to use Web Components. However, the drawback is that it requires separate adaptation code for Vue and React beyond the core logic.  
-For some smaller requirements, the cost of writing adaptation code may be higher than manual adaptation.
+The first thing that came to mind was Web Components. However, the drawback is that apart from the core logic, separate adaptation code needs to be written for Vue and React. For some smaller requirements, the cost of writing adaptation code may be higher than manual adaptation.
 
-That's when I stumbled upon this weird thing called `Mitosis`.  
-Mitosis, named after the biological process of cell division, can compile components into code for multiple frameworks, including React, Vue, Qwik, Solid, Angular, and Svelte.
+Then I discovered this weird thing called `Mitosis`. Mitosis, as the name suggests, can compile components into code for multiple frameworks, including React, Vue, Qwik, Solid, Angular, and Svelte.
 
-Similar to UnoCSS, it's frontend compilation alchemy.
+The implementation principle is a compiler that compiles Mitosis files into a finite subset of Vue and React. Similar to UnoCSS, it is an exploration in the frontend compilation phase.
 
-## Creating a Project
+## Create Project
 ```bash
 npm create @builder.io/mitosis@latest
 ```
-When running the command, there are configurable options. When selecting the output target, only React, Svelte, and Qwik are available.  
-To add Vue support, modify the `targets` field in `library/mitosis.config.cjs`:
+When running the command, there will be some configurable options. When selecting the output target, only React, Svelte, and Qwik are available. However, it supports more frameworks than that. Modify the `targets` field in `library/mitosis.config.cjs` to add Vue support:
 ```js
 "targets": [
   "react",
@@ -36,14 +33,37 @@ npm run build
 # Mitosis: vue: generated 2 components, 1 regular files.
 # Mitosis: generation completed.
 ```
-You will see that the `/library/package` directory correctly generates React and Vue components.
+React and Vue components will be generated in `/library/package`.
 
-## Writing Components
-Mitosis components have the `.lite.tsx` suffix and use JSX syntax with their own API.  
-> Due to compiler limitations, the framework only supports the `export default function` syntax and does not allow defining and exporting later.
+## Write Components
+Mitosis components have a `.lite.tsx` suffix, similar to React's jsx syntax, but with its own API and restrictions.
+```tsx
+import { useState } from "@builder.io/mitosis";
+
+export default function MyComponent(props) {
+  const [name, setName] = useState("Steve");
+
+  return (
+    <div>
+      <input
+        css={{
+          color: "red",
+        }}
+        value={name}
+        onChange={(event) => setName(event.target.value)}
+      />
+      Hello! I can run natively in React, Vue, Svelte, Qwik, and many more frameworks!
+    </div>
+  );
+}
+```
+For example, due to compiler restrictions, components only support the `export default function` syntax shown above and cannot be defined with `const` arrow functions and then exported.
 
 ### State Management
-Component state is managed using the `useStore` hook, and it must be named `state` (another compiler restriction).  
+The most important thing in modern frontend frameworks is `state`.
+
+#### useStore
+State management in Mitosis components is done through the `useStore` hook, and the return value must be named `state` (another compiler restriction).
 ```tsx
 export default function MyComponent() {
   // ...
@@ -52,7 +72,9 @@ export default function MyComponent() {
   })
 }
 ```
-You can pass any parameters to the store, but if you need a value that requires expression calculation, you need to write a `getter`:
+In React components, `useStore` will be transformed into a simple `useState` definition.
+
+You can pass anything as parameters to the store, but if the value you want requires expression calculation, you need to write a `getter`:
 ```tsx
 const state = useStore({
   iconList: [],
@@ -61,14 +83,34 @@ const state = useStore({
   },
 })
 ```
+The `getter` will be transformed into a separate method:
+```tsx
+const [iconList, setIconList] = useState(() => []);
 
-It also supports the `useState` API, used similarly to React:
+function outlineIcon() {
+  return iconList.filter((icon) => icon.endsWith("-outline"));
+}
+```
+
+#### useState
+Mitosis also supports the useState API, used the same way as in React:
 ```tsx
 const [count, setCount] = useState(0)
 ```
+In Vue, both useState and useStore will be compiled into the `data` option in the options API.
+
+> By the way, Mitosis currently does not support the `setup` syntax in Vue 3.
+
+```ts
+export default defineComponent({
+  data() {
+    return { count: 0 };
+  },
+})
+```
 
 ### Styling
-Mitosis uses the `css` attribute on tags to write `camelCase` styles. You can even write CSS queries like this:
+Mitosis allows writing `camelCase` styles using the `css` attribute on tags, and you can even write CSS queries like this.
 ```tsx
 <div
   css={{
@@ -79,30 +121,32 @@ Mitosis uses the `css` attribute on tags to write `camelCase` styles. You can ev
   }}
 />
 ```
-Additionally, the compiled result provides style isolation (which React itself still doesn't support 😂).
+Moreover, the compiled result also isolates styles. (React itself still doesn't support this 😂)
+
+Of course, you can also choose to use the `class` attribute (no need for `className` in React), but then style isolation won't be possible.
 
 ## Flow Control
-To abstract away differences between frameworks, Mitosis implements its own flow control using specific tags. Here is a comparison table, for more details refer to the [documentation](https://mitosis.builder.io/docs/components/):  
+To shield the differences between different frameworks, Mitosis implements its own flow control through a tag. Here is a comparison table, for more details refer to the [documentation](https://mitosis.builder.io/docs/components/):
 | Mitosis | React | Vue |
 | --- | --- | --- |
 | `<Show>` | `if` | `v-if` |
 | `<For>` | `map` | `v-for` |
 
-## Integrating Other Libraries
-Since Mitosis is not a frontend framework but a compiler, it does not come with webpack or Vite integration.  
-For example, to use UnoCSS, you can only use `uno cli`, watch for file changes, compile CSS files, and then import them.
+## Integrating with Other Libraries
+Since Mitosis is not a frontend framework but a compiler, it does not come with webpack or Vite integration out of the box.  
+For example, if you want to use UnoCSS, you can only use the `uno cli` to watch file changes, compile the CSS files, and then import them.  
 
-However, there is a better approach. Essentially, Mitosis is just a transformation pipeline, so all we need to do is set the `environment for the output`. After Mitosis completes the conversion, other tools take over for packaging.  
-The final process of writing components becomes:
+However, there is a better approach. Essentially, Mitosis is just a transformation pipeline, so all we need to do is set up the `output environment` of the artifacts. After Mitosis completes the transformation, other tools take over for bundling.  
+The process of writing components then becomes:  
 1. Write Mitosis components
-2. Compile using `npm run build`, output to a Vite environment
-3. Use a bundler like `vite` to package the final product for npm release
+2. Compile using `npm run build`, output to the Vite environment
+3. Use a bundler like `Vite` to package the final artifacts for npm publishing
 
-You can refer to this project as an example: [unocss-icon-viewer](https://github.com/Ray-D-Song/unocss-icon-viewer).
+You can refer to this project as an example: [unocss-icon-viewer](https://github.com/Ray-D-Song/unocss-icon-viewer).  
 
-There are some key points to note, such as setting `jsxImportSource` to `@builder.io/mitosis` in the tsconfig of Mitosis.  
-This may cause JSX type errors when building libraries like React or Solid.  
-The solution is to configure esbuild and ets plugins in Vite to dynamically modify `compilerOptions`.
+There are some key points you may need to pay attention to, such as setting jsxImportSource to `@builder.io/mitosis` in the Mitosis tsconfig.  
+This may cause jsx type errors when building libraries like React or Solid.  
+The solution is to configure esbuild and ets plugins in Vite to dynamically modify compilerOptions.  
 ```ts
 export default defineConfig({
   plugins: [
@@ -126,8 +170,8 @@ export default defineConfig({
 })
 ```
 
-## Defects
-Mitosis is a decent solution, but it also has its flaws, such as:
-* Inability to control product quality, the generated code is not the optimal solution
-* Strange rules, such as props cannot be destructured, only `props.xxx` can be used, in other words, the compiler is too weak
-* Writing source code => compiling to the packaging environment => running the testing environment involves at least 3 watches and environments, which is too complex
+## Drawbacks
+Mitosis is a decent solution, but it also has its drawbacks, such as:
+* Inability to control output quality, resulting code may not be optimal  
+* Peculiar restrictions, like not allowing destructuring of props, only using `props.xxx`, indicating a weak compiler  
+* The process of writing code => compiling to bundler environment => running test environment involves at least 3 watches and environments, making it overly complex  
