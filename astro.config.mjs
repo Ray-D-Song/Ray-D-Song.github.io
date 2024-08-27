@@ -26,8 +26,8 @@ export default defineConfig({
     shikiConfig: {
       langs: ['javascript', 'html', 'css', 'json', 'typescript', 'markdown', 'shell', 'yaml', 'dockerfile', 'go', 'python', 'rust', 'java', 'php', 'ruby', 'sql', 'swift', 'kotlin', 'c', 'cpp', 'csharp'],
       themes: {
-        light: 'rose-pine-dawn',
-        dark: 'tokyo-night'
+        light: 'github-light',
+        dark: 'vitesse-black'
       }
     }
   },

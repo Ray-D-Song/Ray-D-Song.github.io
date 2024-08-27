@@ -70,6 +70,8 @@ codeBlocks.forEach((block) => {
   if(codeTag) {
     setupLineNum(codeTag as HTMLElement)
   }
+  if(codeTag?.lastChild)
+    codeTag?.removeChild(codeTag.lastChild)
 })
 </script>
 
