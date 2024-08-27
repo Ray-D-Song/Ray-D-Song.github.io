@@ -76,6 +76,11 @@ codeBlocks.forEach((block) => {
 </script>
 
 <style is:global>
+article>p {
+  letter-spacing: 0.1em;
+  margin: 1.5rem 0;
+  line-height: unset !important;
+}
 .astro-code {
   line-height: unset;
   font-size: 0.9rem;
@@ -114,15 +119,42 @@ article code {
 }
 
 p > code {
-  color: #575279 !important;
   font-weight: unset !important;
+  font-size: unset !important;
+  margin: 0 !important;
+}
+
+p > code {
+  color: #4334AE !important;
 }
 
 html.dark p > code {
-  color: #7AA2F7 !important;
+  color: #C98A7D !important;
 }
 
 .twikoo {
   margin-top: 60px;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: 100%;
+  thead, 
+  th, 
+  td, 
+  tfoot {
+    border: 1px solid #ccc !important;
+    padding: 10px;
+    font-weight: 400 !important;
+  }
+  thead {
+    background-color: #555;
+  }
+  td {
+    &:first-child {
+      color: #39f;
+    }
+  }
 }
 </style>
