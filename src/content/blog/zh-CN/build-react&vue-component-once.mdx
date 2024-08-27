@@ -40,11 +40,10 @@ npm run build
 
 ## 编写组件  
 Mitosis 的组件后缀是`.lite.tsx`, jsx 语法, 但有一套自己的 API.  
-> 另一个比较奇怪的是, 框架只支持 `export default function` 的写法, 不能先定义再在最后导出.  
-> 大概是编译器限制
+> 由于编译器限制, 框架只支持 `export default function` 的写法, 不能先定义再在最后导出.  
 
 ### 状态管理
-组件状态维护通过`useStore`钩子, 还必须叫`state`(大概也是编译器限制).   
+组件状态维护通过`useStore`钩子, 还必须叫`state`(也是编译器限制).   
 ```tsx
 export default function MyComponent() {
   // ...
@@ -97,10 +96,38 @@ Mitosis 通过标签上的`css`属性来编写`camelCase`的样式, 你甚至可
 最终我们编写组件的流程就变成了:  
 1. 编写 Mitosis 组件
 2. 使用`npm run build`编译, 输出到 vite 环境中
-3. 使用`vite`打包最终的产物, npm 发布
+3. 使用`vite`之类的的打包器去打包最终的产物, npm 发布
+
+你可以以这个项目为示例[unocss-icon-viewer](https://github.com/Ray-D-Song/unocss-icon-viewer).  
+
+有一些关键点你可能需要注意, 比如mitosis的 tsconfig 将 jsxImportSource 设置为`@builder.io/mitosis`.  
+这会导致你 build react 或者 solid 之类的库时, jsx 类型报错.  
+解决方案是在 Vite 中配置 esbuild 和 ets 插件, 动态修改 compilerOptions.  
+```ts
+export default defineConfig({
+  plugins: [
+    // ...
+    dts({
+      outDir: 'dist',
+      include: 'packages/*/src/**',
+      compilerOptions: {
+        jsxImportSource: 'react',
+      }
+    }),
+  ],
+  // ...
+  esbuild: {
+    tsconfigRaw: {
+      compilerOptions: {
+        jsxImportSource: 'react',
+      }
+    }
+  }
+})
+```
 
 ## 缺陷
 Mitosis 算是不错的解决方案, 但也有缺陷, 比如:
 * 无法控制产物质量, 生成的代码并不是最优解  
+* 奇奇怪怪的规定, 比如 props 不可以解构, 只能用`props.xxx`, 换言之就是编译器太弱了  
 * 编写源码 => 编译到打包器环境 => 运行测试环境, 这里面至少涉及 3 个 watch 和环境, 太过复杂  
-* 项目处于早期阶段, 文档不够完善, 很多配置也不合理
