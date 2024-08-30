@@ -22,14 +22,30 @@ tag: ['frontend', 'JavaScript', 'TypeScript']
 jQuery 本质是一个的 DOM 操作库.  
 在当时, 并不区分前端和后端, 大多数情况下也不是通过 json 传输数据, 而是通过 form 表单提交. 后端返回的 html 直接插入到页面中.  
 ```js
+<script>
+$("button").click(function() {
+	$.ajax({
+    url: "demo_test.txt",
+    success: function(result) {
+		$("#div1").html(result)
+	}})
+})
+</script>
+
+<button>Go</button>
 ```
 有不少人以为 jQuery 是 DOM 界的 [lodash](https://www.lodashjs.com/).  
 实际上 jQuery 支持[插件](https://plugins.jquery.com/), 有着活跃而庞大的社区.
 
 ### 其他库
+同一时期, 还有一些其他的库.    
+* [Prototype](https://prototypejs.org/): 
+* [MooTools](https://mootools.net/)
+* [RightJS](https://yuilibrary.com/).  
 
 
 ## 1.0.0 MVC/MVVM时代
-这个时代的代表作是 backbone, angular.js, vue(1.x).  
+这个时代的代表作是 backbone.js, angular.js, vue(1.x).  
+backbone.js 
 
 ## 2.0.0 组件化时代
