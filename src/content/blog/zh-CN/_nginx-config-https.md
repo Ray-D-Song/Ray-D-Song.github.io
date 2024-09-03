@@ -85,3 +85,13 @@ server {
 - `http://localhost:8080` 替换为你的服务地址
 
 如果你希望用户访问路径不是`your_domain.com`, 可以将 11 行的`/`替换为你想要的路径.  
+
+保存配置文件后, 重启 Nginx 服务.  
+```bash
+sudo systemctl restart nginx
+```
+
+如果没有使用 systemd 管理 Nginx 服务, 可以使用以下命令重启 Nginx 服务.  
+```bash
+sudo nginx -s reload
+```
