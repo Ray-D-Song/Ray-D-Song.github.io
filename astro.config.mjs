@@ -2,8 +2,8 @@ import { defineConfig } from 'astro/config';
 import unocss from "@unocss/astro";
 import sitemap from "@astrojs/sitemap";
 import vue from "@astrojs/vue";
-
 import mdx from "@astrojs/mdx";
+import {transformerNotationDiff, transformerNotationHighlight} from '@shikijs/transformers'
 
 // https://astro.build/config
 export default defineConfig({
@@ -25,10 +25,15 @@ export default defineConfig({
     syntaxHighlight: 'shiki',
     shikiConfig: {
       langs: ['javascript', 'html', 'css', 'json', 'typescript', 'markdown', 'shell', 'yaml', 'dockerfile', 'go', 'python', 'rust', 'java', 'php', 'ruby', 'sql', 'swift', 'kotlin', 'c', 'cpp', 'csharp'],
+      wrap: true,
       themes: {
         light: 'github-light',
-        dark: 'vitesse-black'
-      }
+        dark: 'vitesse-dark'
+      },
+      transformers: [
+        transformerNotationDiff(),
+        transformerNotationHighlight()
+      ]
     }
   },
   output: "static",

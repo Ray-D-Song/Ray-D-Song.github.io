@@ -1,6 +1,6 @@
 ---
 title: 'Mac 关闭 SIP 并删除自带 ABC 输入法'
-date: '2024-8-14'
+date: '2024-08-14'
 cover: ''
 tag: ['MacOS', 'Other']
 ---

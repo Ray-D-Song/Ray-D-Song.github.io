@@ -30,7 +30,7 @@ export default defineConfig({
       background: '#F5EFD9',
     }],
     ['bg-dark', {
-      background: '#121212',
+      background: '#1B1B1F',
     }],
   ],
 })

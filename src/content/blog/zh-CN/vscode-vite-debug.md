@@ -1,6 +1,6 @@
 ---
 title: 'vscode 如何 debug 前端项目'
-date: '2024-8-12'
+date: '2024-08-12'
 cover: ''
 tag: ['frontend', 'vite']
 ---

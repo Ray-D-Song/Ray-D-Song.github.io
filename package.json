@@ -28,6 +28,7 @@
   "devDependencies": {
     "@iconify-json/fe": "^1.1.11",
     "@iconify-json/mdi": "^1.1.68",
+    "@shikijs/transformers": "^1.16.1",
     "@types/jsdom": "^21.1.7",
     "jsdom": "^24.1.1",
     "unocss": "^0.61.9"
