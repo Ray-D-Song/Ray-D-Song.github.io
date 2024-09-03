@@ -2,8 +2,10 @@
 title: 'nginx 配置 https'
 date: '2024-09-03'
 cover: ''
-tag: ['nginx', 'https']
+tag: ['nginx', 'self-host']
 ---
+
+self-host 系列文章, 讲述如何自己搭建服务.  
 
 ## 什么是 HTTPS
 HTTPS 是 HTTP 的安全版本, 通过加密通信内容, 防止[中间人攻击](https://zh.wikipedia.org/wiki/%E4%B8%AD%E9%97%B4%E4%BA%BA%E6%94%BB%E5%87%BB), 保证数据传输的安全性.  
@@ -95,3 +97,22 @@ sudo systemctl restart nginx
 ```bash
 sudo nginx -s reload
 ```
+
+## 配置 DNS
+在 Cloudflare 控制台中, 选择左侧的`Websites` -> `选择你的域名` -> `DNS`  
+点击`Add record`添加一条 A 记录, 将`Type`设置为`A`, `Name`设置为你的域名, `IPv4 address`设置为你的服务器 IP.  
+点击保存, 等待 DNS 生效. 然后访问你的域名, 大功告成.   
+
+
+## 配置 HTTP 跳转 HTTPS
+
+如果你希望用户访问 HTTP 时自动跳转到 HTTPS, 可以在配置文件中添加以下配置.  
+```nginx
+server {
+    listen 80;
+    server_name your_domain.com; # [!code highlight]
+    return 301 https://$host$request_uri;
+}
+```
+
+对于 Cloudflare 用户, 可以在 Cloudflare 控制台中配置`SSL/TLS` -> `Edge Certificates` -> `Always Use HTTPS`开启强制 HTTPS.  
