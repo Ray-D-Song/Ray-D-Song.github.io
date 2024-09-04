@@ -132,3 +132,10 @@ Cloudflare 提供了免费额度, 不过是以`神经元`作为单位, 可以在
 如果你发现免费额度不足以覆盖, 可以修改为低一级的模型.  
 
 [完整的模型列表在此](https://developers.cloudflare.com/workers-ai/models/)  
+
+## 总结
+llama3 有不错的对话效果, 但是速度比较慢, 代码补全也比较笨.  
+
+starcoder2 速度要快得多, 补全效果也更好, 但对文本的处理能力偏弱.  
+
+个人推荐使用 Cloudflare 的 llama3 模型进行对话, 本地运行 starcoder2 进行补全, 是比较完美的解决方案.  
