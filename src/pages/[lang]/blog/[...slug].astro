@@ -221,3 +221,32 @@ pre code {
   align-items: center;
 }
 </style>
+
+<style is:inline>
+.link-preview {
+  margin: 0 auto;
+  width: 70% !important;
+  --link-preview-corners: 0.5em;
+  --link-preview-padding-inline: 0.75rem;
+  font-family: sans-serif;
+}
+html.light .link-preview {
+  background-color: #F7F7F8;
+  color: darkblue;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+html.dark .link-preview {
+  background-color: #1E2A5E;
+  color: #CDC2A5;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+html.dark .link-preview a {
+  color: #E1D7C6;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+html.dark .link-preview img {
+  opacity: 90%;
+}
+</style>

@@ -3,6 +3,7 @@ import unocss from "@unocss/astro";
 import sitemap from "@astrojs/sitemap";
 import vue from "@astrojs/vue";
 import mdx from "@astrojs/mdx";
+import embeds from 'astro-embed/integration'
 import {transformerNotationDiff, transformerNotationHighlight} from '@shikijs/transformers'
 
 // https://astro.build/config
@@ -18,8 +19,8 @@ export default defineConfig({
         'zh-CN': 'zh-CN',
         en: 'en'
       }
-    }
-  }), vue(), mdx()],
+    },
+  }), vue(), embeds(), mdx()],
   site: 'https://ray-d-song.com',
   markdown: {
     syntaxHighlight: 'shiki',
