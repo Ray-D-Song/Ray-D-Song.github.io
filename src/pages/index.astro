@@ -1,11 +1,11 @@
 ---
 import { getCollection } from 'astro:content';
 import Layout from '../layouts/Layout.astro';
-import {formatDate} from '../utils/date'
 import Card from '@/components/Card.astro';
 
 const blogs = (await getCollection('blog'))
   .filter(blog => blog.slug.startsWith('zh-cn'))
+  .filter(blog => blog.data.card)
   .sort((a, b) => (new Date(b.data.date)).getTime() - (new Date(a.data.date)).getTime())
 ---
 
