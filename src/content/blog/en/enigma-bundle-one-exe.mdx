@@ -1,0 +1,56 @@
+---
+title: 'Packaging exe and dll into a single executable file using Enigma Virtual Box'
+date: '2024-09-12'
+cover: ''
+tag: ['Other']
+---
+
+On macOS and Linux, most tools are distributed as a single executable file. Sometimes on Windows, `.dll` files are included.
+
+## What is a dll
+DLL stands for "Dynamic Link Library" and is mainly used for the Windows operating system.
+
+DLL files contain code and data that can be shared by multiple programs. When a program needs to use this code and data, it dynamically loads the corresponding DLL file instead of copying the code and data into each program. This saves memory space and ensures that multiple programs use the same code and data, thereby improving system stability and security.
+
+DLLs can be understood simply as `libraries` or `packages`.
+
+For example, porting a multi-threaded application to Windows will depend on `libwinpthread-1.dll`. This is a DLL file that implements POSIX threads (pthreads) and provides the same interface as the pthreads library on Linux and macOS, allowing multi-threaded applications to run on Windows.
+
+Without such a dll file, each multi-threaded application ported to Windows would need to implement its own thread management mechanism, significantly increasing development complexity.
+
+You can find available dll files on `dll-files.com`.
+
+https://www.dll-files.com/libwinpthread-1.dll.html
+
+## Issue
+Most necessary DLLs are integrated into the system, located in the `system32` directory on Windows.
+
+If a DLL is missing from the system, the program will report the following error:
+`Couldn't find ****.dll...`
+
+A common practice is to place the DLL file and the executable file in the same directory, but this increases distribution complexity.
+
+## Enigma Virtual Box
+Enigma Virtual Box is a file packaging tool that packages executable files and associated files (such as dll) into a single executable file.
+
+You can find the download link for Enigma Virtual Box on the official website.
+
+https://enigmaprotector.com/en/downloads.html
+
+After installation, open Enigma Virtual Box:
+
+![EVB](https://r2.ray-d-song.com/2024/09/18d11169fb1fe10b658ac0c9294c710b.png)
+
+* Fill in the exe file path at `#1`
+* Fill in the output file path at `#2`
+* Click `Add` at `#3` to select other files or folders to package
+* Click `process` at the bottom right to start packaging
+
+## Principle
+In principle, it is not difficult to implement, as all files are packaged into binary and loaded into memory or copied to a temporary file at runtime.
+
+Using Golang's embed feature, a simple demo can be easily implemented.
+
+https://github.com/Ray-D-Song/go-embed-exec
+
+Of course, Enigma Virtual Box includes more complex operations to adapt to various situations. 

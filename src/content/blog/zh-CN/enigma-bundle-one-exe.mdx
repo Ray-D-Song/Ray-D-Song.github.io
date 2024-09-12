@@ -1,0 +1,57 @@
+---
+title: '使用Enigma Virtual Box将 exe 和 dll 打包成单个可执行文件'
+date: '2024-09-12'
+cover: ''
+tag: ['Other']
+---
+
+在 macOS 和 Linux 上，大多数工具都会以单个可执行文件的形式分发。Windows 平台有时会附带`.dll`文件。  
+
+## dll 是什么
+DLL文件是“动态链接库”（Dynamic Link Library）的缩写，主要用于Windows操作系统。  
+
+DLL文件包含了一些可以被多个程序共享的代码和数据。当一个程序需要使用这些代码和数据时，它会动态地加载相应的DLL文件，而不是将这些代码和数据复制到每个程序中。这样可以节省内存空间，并且可以确保多个程序使用的是同一份代码和数据，从而提高系统的稳定性和安全性。  
+
+可以将 DLL 简单理解为`库`或者`包`。
+
+举个例子，多线程应用移植到 Windows 上会依赖`libwinpthread-1.dll`。  
+这是一个实现了 POSIX 线程（pthreads）的 DLL 文件，它提供了与 Linux 和 macOS 上的 pthreads 库相同的接口，使得多线程应用可以在 Windows 上运行。  
+
+如果没有这样一个 dll 文件，那每个移植到 Windows 上的多线程应用都需要自己实现一套线程管理机制，大大提高了开发难度。  
+
+你可以在`dll-files.com`上找到可用的 dll 文件。  
+
+https://www.dll-files.com/libwinpthread-1.dll.html
+
+## 问题
+大多数必要的 DLL 会被集成到系统中，在 Windows 的`system32`目录下。  
+
+如果系统缺少某个 DLL，那程序就会报以下错误：  
+`Couldn't find ****.dll...`
+
+一个常见的做法是将 DLL 文件和可执行文件放在同一个目录下，但这样增加了分发的难度。  
+
+## Engima Virtual Box
+Engima Virtual Box 是一个文件封装工具，将可执行文件和配套文件（例如 dll）封装进一个可执行文件中。  
+
+你可以在官网上找到 Engima Virtual Box 的下载卡片。  
+
+https://enigmaprotector.com/en/downloads.html
+
+安装完成后，打开 Engima Virtual Box：  
+
+![EVB](https://r2.ray-d-song.com/2024/09/18d11169fb1fe10b658ac0c9294c710b.png)
+
+* 在`#1`处填写要打包的 exe 文件路径
+* 在`#2`处填写输出文件路径
+* 在`#3`处点击`Add`，选择要打包的其他文件或文件夹
+* 点击右下角的`process`，开始打包
+
+## 原理
+原理上其实不难实现，将所有文件全都打包成二进制，运行时塞到内存或者拷贝进临时文件中。  
+
+使用 Golang 的 embed 可以轻松实现一个简单的 demo。  
+
+https://github.com/Ray-D-Song/go-embed-exec
+
+当然，Engima Virtual Box 为了适配各种情况，肯定包含复杂度更高的操作。  
