@@ -38,7 +38,7 @@ const { title, lang, desc} = Astro.props;
         class="i-mdi-dinosaur-pixel w-10 h-10 mx-2 my-1 hover:cursor-pointer hover:opacity-80"
         onclick="window.location.href = '/'"
       />
-      <div class="flex invisible">
+      <div class="flex">
         <div class="relative w-6 h-6 m-2">
           <div 
             id="lang-icon"
@@ -69,9 +69,9 @@ const { title, lang, desc} = Astro.props;
           class="action-btn i-mdi-theme-light-dark w-6 h-6 my-2 mx-4 lg:mx-2 hover:cursor-pointer hover:opacity-80"
         />
       </div>
-      <div class="sm:visible">
+      <!-- <div class="sm:visible">
         <div class="i-mdi-hamburger-menu w-10 h-10 mr-1 mt-1 rotate-90"/>
-      </div>
+      </div> -->
     </header>
     <div class="py-20 flex-grow-1">
       <slot />
