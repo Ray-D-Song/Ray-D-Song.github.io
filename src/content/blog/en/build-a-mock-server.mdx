@@ -13,7 +13,8 @@ More importantly, they only provide self-hosting services for commercial users, 
 
 I will introduce how to implement your own online mock service using Node.js, MongoDB, and Faker.js.  
 
-> You can also find the project code on [https://github.com/Ray-D-Song/faker-server](https://github.com/Ray-D-Song/faker-server).
+> You can also find the project code on [https://github.com/Ray-D-Song/faker-server](https://github.com/Ray-D-Song/faker-server).  
+> online demo: https://faker-preview.jenrays.com/ read-only permission key: 1234
 
 ## Feature Goals
 1. Create, edit, and delete interface data
@@ -187,6 +188,143 @@ function fake(key: string, options?: FakeOptions) {
 ```
 
 Then we can process the response body according to the node tree.
-```ts
 
+```ts
+/**
+ * Process the response body
+ * @param body - The node tree
+ */
+function processResBody(body: Node[]) {
+  // Process single node logic
+  function processNode(node: Node) {
+    if (node.value !== undefined && node.value.trim() !== '') {
+      // If a non-empty specific value is set, split it into an optional value array
+      const options = node.value.split('^').map((v) => v.trim())
+      // Randomly select a value
+      const selectedValue = options[Math.floor(Math.random() * options.length)]
+      // Convert the selected value to the corresponding type
+      switch (node.type) {
+        case 'number':
+          return Number(selectedValue)
+        case 'boolean':
+          return selectedValue.toLowerCase() === 'true'
+        case 'null':
+          return null
+        case 'object':
+        case 'array':
+          try {
+            return JSON.parse(selectedValue)
+          } catch {
+            console.warn(`Failed to parse ${node.key} value as ${node.type}, using original string`)
+            return selectedValue
+          }
+        default:
+          return selectedValue
+      }
+    }
+
+    // Process different types of nodes
+    switch (node.type) {
+      // Object type, recursively process each child node
+      case 'object':
+        const obj: { [key: string]: any } = {}
+        node.children?.forEach((child) => {
+          obj[child.key] = processNode(child)
+        })
+        return obj
+      // Array type, generate the corresponding number of child nodes
+      case 'array':
+        const arr: any[] = []
+        const length = node.length || 1
+        for (let i = 0; i < length; i++) {
+          arr.push(processNode(node.children?.[0] || {
+            key: 'item',
+            type: 'string',
+            mock: 'string.alphanumeric',
+          }))
+        }
+        return arr
+      // Other types call fake to generate data
+      case 'number':
+        let options: FakeOptions = {}
+        if (node.min) options.min = Number(node.min)
+        if (node.max) options.max = Number(node.max)
+        return fake(node.mock, options)
+      case 'string':
+      case 'boolean':
+        return fake(node.mock)
+      case 'null':
+        return null
+      case 'any':
+        return fake('datatype.json')
+      default:
+        return undefined
+    }
+  }
+
+  // Start processing from the root node
+  return processNode(body[0])
+
+}
 ```
+
+The core logic of `processResBody` is self-recursive, processing different types of nodes according to different types.  
+Next, we need to integrate the `processResBody` method into the mock interface routing.  
+
+### Basic Authentication
+Since it's a web service, you can't let anyone create, delete, or modify interfaces.  
+
+Here, we don't introduce additional complexity, such as multi-tenancy, directly using a `KEY` field for authentication.
+
+Specifically, when the service is first started, a configuration file `.env` is generated, containing a `KEY` field, whose value is a uuid.  
+The client sets a custom `Faker-Server-Key` request header, which is used to verify its value when making requests.  
+Every time the service is started, it reads this file, so every time the `KEY` is modified, the service needs to be restarted.  
+
+This can also be extended to read-only `KEY`, `ADMIN KEY`, `ACCESS KEY`, etc.  
+
+```ts
+// Generate default configuration
+function generateDefaultConfig() {
+  // Check if the configuration directory exists
+  if (!fs.existsSync(configDir)) {
+    fs.mkdirSync(configDir, { recursive: true })
+  }
+  
+  // Check if the configuration file exists, if not, create it
+  if (!fs.existsSync(configFile)) {
+    // Generate three UUIDs as KEY
+    const accessKey = crypto.randomUUID()
+    const adminKey = crypto.randomUUID()
+    const readonlyKey = crypto.randomUUID()
+    const defaultConfig = `
+# Server Port
+PORT=3000
+
+# Access /mock/* API
+ACCESS_KEY=${accessKey}
+
+# If true, the server will allow public access to the /mock/* API
+# /api/* will continue to require authentication
+PUBLIC_ACCESS=false
+
+# ADMIN_KEY is used to access the web page and modify the data
+ADMIN_KEY=${adminKey}
+
+# READONLY_KEY can access the web page, but cannot modify the data
+READONLY_KEY=${readonlyKey}
+
+# MongoDB URL
+MONGO_URL=mongodb://admin:password@localhost:27017?authSource=admin
+`.trim()
+
+    // Write the default configuration to the file
+    fs.writeFileSync(configFile, defaultConfig)
+    console.log('Created default configuration file at:', configFile)
+  }
+}
+```
+
+### Summary
+This is not a step-by-step tutorial, but rather an idea.  
+You can refer to [https://github.com/Ray-D-Song/faker-server](https://github.com/Ray-D-Song/faker-server) for the specific implementation.  
+
