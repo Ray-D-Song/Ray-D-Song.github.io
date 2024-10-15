@@ -136,6 +136,10 @@ article code {
   margin: 0 5px;
 }
 
+.prose {
+  max-width: 100% !important;
+}
+
 .prose :where(:not(pre) > code):not(:where(.not-prose,.not-prose *))::before, .prose :where(:not(pre) > code):not(:where(.not-prose,.not-prose *))::after {
   content: '';
 }
@@ -146,7 +150,7 @@ p > code {
 }
 
 p > code {
-  color: #4334AE !important;
+  font-weight: 600 !important;
 }
 
 html.dark p > code {
