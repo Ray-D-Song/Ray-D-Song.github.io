@@ -1,0 +1,113 @@
+---
+title: '如何在 React 中使用 async-await'
+date: '2024-10-21'
+cover: ''
+tag: ['React']
+---
+
+我一直是个 Vue 用户，最近才开始使用 React，希望下面的内容可以帮到和我一样对函数式组件感到困惑的人。  
+
+## Suspanse
+首先，在 React 中以下写法是无效的：
+```tsx
+async function Child() {
+  const data = await fetchData()
+  
+  return <div>{data}</div>
+}
+
+function Parent() {
+  return (
+    <Suspanse fallback={<div>loading</div>}>
+      <Child />
+    </Suspanse>
+  )
+}
+```
+这是第一个误区, 在 Vue 中，使用`<Suspanse>`包裹子组件，就可以在子组件的顶层使用 await。  
+但是 React 每个组件都是同步组件，Suspanse 只支持以下几种情况：
+
+* 支持 Suspense 的框架如 Relay 和 Next.js。
+* 使用 lazy 懒加载组件代码。
+* 使用 use 读取 Promise 的值。
+
+其中`use API`可以实现和 Vue 顶层 await 类似的效果，但目前还是实验阶段。
+
+## 正确方式
+
+### useEffect
+```tsx
+function AsyncComponent() {
+  const [data, setData] = useState(null)
+
+  useEffect(() => {
+    async function fetchData() {
+      const result = await someAsyncOperation()
+      setData(result)
+    }
+    fetchData()
+  }, [])
+
+  if (!data) return <div>loading</div>
+  return <div>{data}</div>
+}
+```
+如果`useEffect`钩子的第二个参数为空数组，就会在组件首次渲染时，执行 Effect 函数。  
+在上面的例子中，就是执行 fetchData，请求成功后使用 setData 更新数据，刷新视图。  
+
+> 注意：useEffect 的第二个参数不能省略，省略=每次组件更新都会触发，这会导致无限刷新
+
+### 自定义 hooks
+每一次请求都这么写，会让组件的表达非常啰嗦。  
+常用的做法是将请求封装成一个自定义 hooks。
+
+```tsx
+function useAsyncData() {
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const result = await someAsyncOperation()
+        setData(result);
+      } catch (error) {
+        console.error(error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchData()
+  }, [])
+
+  return { data, loading }
+}
+```
+
+使用：  
+```tsx
+function AsyncComponent() {
+  const { data, loading } = useAsyncData()
+
+  if (loading) return <div>loading...</div>
+  if (!data) return <div>no data</div>
+  return <div>{data}</div>
+}
+```
+
+也有一些库可以帮我们完成这个过程，比如react-query、swr、ahooks。
+
+使用 swr：
+```tsx
+function AsyncComponent() {
+  const { data, isLoading } = useSWR('key', fetcher)
+
+  if (isLoading) return <div>loading...</div>
+  if (!data) return <div>no data</div>
+  return <div>{data}</div>
+}
+```
+
+## 总结
+React async 的核心在于理解「React 组件都是同步组件」。  
+组件内部可以维护一个异步状态，等到这个异步状态 fulfilled 的时候再用 useState 去更新视图。  

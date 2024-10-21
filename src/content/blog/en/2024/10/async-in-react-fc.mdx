@@ -1,0 +1,113 @@
+---
+title: 'How to use async-await in React FC'
+date: '2024-10-21'
+cover: ''
+tag: ['React']
+---
+
+I've been a Vue user for a long time, and I've just started using React recently. I hope the following content can help those who are as confused as I was about functional components.
+
+## Suspense
+First, the following syntax is invalid in React:
+```tsx
+async function Child() {
+  const data = await fetchData()
+  
+  return <div>{data}</div>
+}
+
+function Parent() {
+  return (
+    <Suspense fallback={<div>loading</div>}>
+      <Child />
+    </Suspense>
+  )
+}
+```
+
+This is the first misconception. In Vue, you can use `<Suspense>` to wrap the child component and use `await` at the top level of the child component. However, in React, each component is a synchronous component, and `<Suspense>` only supports the following situations:
+
+* Frameworks that support Suspense, such as Relay and Next.js.
+* Using lazy to load component code.
+* Using `use` to read the value of a Promise.
+
+Among them, `use API` can achieve a similar effect to `await` at the top level in Vue, but it is still in the experimental stage.
+
+## Correct way
+
+### useEffect
+```tsx
+function AsyncComponent() {
+  const [data, setData] = useState(null)
+
+  useEffect(() => {
+    async function fetchData() {
+      const result = await someAsyncOperation()
+      setData(result)
+    }
+    fetchData()
+  }, [])
+
+  if (!data) return <div>loading</div>
+  return <div>{data}</div>
+}
+```
+If the `useEffect` hook's second parameter is an empty array, it will execute the Effect function when the component is first rendered.  
+In the above example, it will execute `fetchData` when the component is first rendered. After the request is successful, it will use `setData` to update the data and refresh the view.  
+
+> Note: The second parameter of `useEffect` cannot be omitted, otherwise it will trigger an infinite refresh.
+
+### Custom hooks
+Each request is written like this, making the component's expression very verbose.  
+The common way is to encapsulate the request into a custom hook.
+
+```tsx
+function useAsyncData() {
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const result = await someAsyncOperation()
+        setData(result);
+      } catch (error) {
+        console.error(error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchData()
+  }, [])
+
+  return { data, loading }
+}
+```
+
+Use:  
+```tsx
+function AsyncComponent() {
+  const { data, loading } = useAsyncData()
+
+  if (loading) return <div>loading...</div>
+  if (!data) return <div>no data</div>
+  return <div>{data}</div>
+}
+```
+
+There are also some libraries that can help us complete this process, such as react-query, swr, ahooks.
+
+Using swr:
+```tsx
+function AsyncComponent() {
+  const { data, isLoading } = useSWR('key', fetcher)
+
+  if (isLoading) return <div>loading...</div>
+  if (!data) return <div>no data</div>
+  return <div>{data}</div>
+}
+```
+
+## Conclusion
+The core of React async is to understand that "React components are synchronous components".  
+Components can maintain an asynchronous state internally, and when the asynchronous state is fulfilled, use `useState` to update the view.  
