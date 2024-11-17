@@ -1,0 +1,120 @@
+---
+title: 'Error and Exception'
+date: '2024-11-17'
+cover: ''
+tag: ['JavaScript']
+---
+
+# Error and Exception
+Error and exception are concepts born from practice, aiming to handle "programmable errors".  
+
+## Error
+From a code perspective, error tends to be manually handled precisely.  
+For example, fnA calls fnB and fnC. Both methods may encounter errors, and the processing code is roughly as follows:
+```js
+function fnA() {
+  const { err: bErr, res: bRes } = fnB()
+  if (bErr) {
+    // ...
+    // error handling
+  }
+
+  const { err: cErr, res: cRes } = fnC()
+  if (cErr) {
+    // ...
+    // error handling
+  }
+  // normal logic
+}
+```
+
+The key to "error" is to return an object or array from the function, with one field representing "an error occurred". As long as this field is not empty, programmers know that the normal flow has been interrupted.
+
+JavaScript has an internal `Error` object and constructor, but the field representing the error is not required to be an Error object. Instead, the Error object is more often used in exception handling.
+
+## Exception
+
+We already have error handling, why do we need exception?  
+
+Imagine a scenario where you have a button. When the button is clicked, it triggers function A. After going through multiple layers of calls (perhaps 10 layers), an error occurs in function X. You don't want to tell the user "unknown error", but rather want to provide specific information about what went wrong.
+
+You can achieve this effect with errors, but you need to write ten times this code:
+```js
+function fnA() {
+  const { err, res } = fnB()
+  if (err) {
+    // display error to user
+    showErr(err)
+  }
+}
+
+function fnB() {
+  const { err, res } = fnC()
+  if (err)
+    // propagate error
+    return { err, null }
+}
+
+// ... 10 similar passes
+
+function fnY() {
+  const { err, res } = fnX()
+  if (err)
+    // propagate error
+    return { err, null }
+}
+```
+
+This kind of boilerplate code is very inefficient. A better method is to use exceptions.
+
+You only need to throw an exception when an error occurs in fnY. At the top level, you can catch it.
+
+```js
+function fnA() {
+  try {
+    fnB()
+  } catch (e) {
+    showErr(e)
+  }
+}
+
+// ...
+
+function fnY() {
+  const { err, res } = fnX()
+  if (err)
+    // 抛出
+    throw err
+}
+```
+In this way, no matter where an error occurs, it can be caught at the top level, and the code in other layers is not affected.  
+Avoid polluting the entire code structure with errors at one place.
+
+## Why distinguish between the two?
+We have already explained why we need exceptions, but why do we need to distinguish between errors and exceptions?
+
+The best practice is to strictly distinguish between the two. If an error does not need to be passed up layer by layer, it should be handled directly in the current layer. For example, the error of fnC does not need to be used in fnA, so it should be handled as an error directly in B.
+
+Assume that all errors are handled at the top level, then all logic is piled up in the catch block at the top level, which is difficult to maintain.
+
+```js
+function main() {
+  try {
+    task1()
+    task2()
+    task3()
+  } catch(e) {
+    switch(e) {
+      case "type A":
+        //...
+        break;
+      case "type B":
+        //...
+        break;
+      case "type C":
+        //...
+        break;
+    }
+  }
+}
+```
