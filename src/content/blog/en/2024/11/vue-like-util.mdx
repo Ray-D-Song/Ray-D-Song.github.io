@@ -16,10 +16,10 @@ The call form is as follows:
 await until(ref).toBe(true, { timeout: 1000 })
 ```
 
-This method can solve many engineering problems, such as in the double token scheme, the user triggers multiple requests at once, and the refreshToken method is executed in the first request.
-After the refreshToken is successful, the subsequent requests should continue to be executed.
-To achieve this effect, there are two solutions. One is to set the subsequent requests to the callback and store them in an array.
-However, this will involve parameter passing and scope issues.
+This method can solve many engineering problems, such as in the double token scheme, the user triggers multiple requests at once, and the refreshToken method is executed in the first request.  
+After the refreshToken is successful, the subsequent requests should continue to be executed.  
+To achieve this effect, there are two solutions. One is to set the subsequent requests to the callback and store them in an array.  
+However, this will involve parameter passing and scope issues.  
 The better method is to use the util method, check whether the current status is blocked before each fetch, and block until the refresh is complete.
 
 Call form like this:
