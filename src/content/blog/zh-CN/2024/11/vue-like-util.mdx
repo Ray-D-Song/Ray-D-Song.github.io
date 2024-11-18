@@ -1,0 +1,105 @@
+---
+title: '用 Proxy 和 WeakMap 实现一个类似 @vueuse 的 util 方法'
+date: '2024-11-18'
+cover: ''
+tag: ['JavaScript', 'Vue']
+---
+
+在使用 Vueuse 时，我发现一个很好用的方法[util](https://vueuse.org/shared/until/)。  
+
+该方法的作用是监听某个响应式变量，阻塞当前方法直到该变量符合要求。  
+
+调用形式如下：
+
+```ts
+// will be resolve until ref.value === true or 1000ms passed
+await until(ref).toBe(true, { timeout: 1000 })
+```
+
+这个方法可以解决许多工程难题，比如双 token 方案中，用户一次触发了多个请求，在第一个请求处执行 refreshToken 方法。  
+refreshToken 成功后，应该继续执行下面的请求。  
+为了实现这种效果有两个方案，一个是将后续请求设置后 callback，存储在一个数组中。但这样会涉及到参数传递和作用域之类复杂的中断恢复问题。  
+更好的方法就是使用 util 方法，在每次 fetch 前检查目前是否处于 blocked 状态，是的话就阻塞，直到 refresh 结束。
+
+调用方式类似于：
+```ts
+const status = reactive('idle')
+
+async function fetcher() {
+  await util(status, 'idle')
+
+  // ...
+
+  if (res.status === 401) {
+    // 401 未授权时阻塞其他请求的执行
+    status.value = 'blocked'
+    await refreshToken()
+    // 刷新成功后修改状态
+    status.value = 'idele'
+  }
+}
+```
+
+我希望实现一个框架无关的 util 方案，实现一个简单的值监听效果。  
+因为 util 是一个阻塞操作，所以应该返回一个 Promise。
+```ts
+function util(reactive: unknown, targetValue: unknown) {
+  return new Promise(resolve => {
+    // 直到 reactive 的值和 targetValue 相等时 resolve
+  })
+}
+```
+问题来了，JavaScript 不包含`直到`这样的语义或 API，但我们可以监听 reactive 值的变化，将 resolve 作为回调传递，每次变化时对比新值和 targetValue 是否相等，相等的话就执行回调。
+
+为了实现这样一个监听器，我们可以参考 Vue，`@vue/reactivity`的核心是基于 Proxy 的写入和读取代理。  
+首先编写一个 reactive 包装函数，接收初始值，返回一个被代理的对象：
+```ts
+function reactive<T>(value: T): Reactive<T> {
+  const proxyed = new Proxy({ value }, {
+    set(target, prop, newValue) {
+      target[prop as keyof typeof target] = newValue
+      return true
+    }
+  })
+  return proxyed
+}
+```
+这样在修改`proxyed.value`的时候就会触发 set 方法。
+接下来我们需要一个存储桶来存储所有的回调。  
+使用 WeakMap 来新建存储桶：
+```ts
+const effectMap = new WeakMap<object, Array<() => void>>()
+```
+在 util 函数中将回调函数写入存储桶：
+```ts
+function util<T>(reactive: Reactive<T>, targetValue: unknown) {
+  return new Promise(resolve => {
+    // 如果初始值就相同，直接 resolve
+    if (reactive.value === targetValue) {
+      resolve(true)
+      return;
+    }
+    // 获取已有的 callback
+    const cbs = effectMap.get(reactive) || []
+    // 写入新的 callback
+    cbs.push(() => {
+      // 当值等于目标值时 resolve
+      if (reactive.value === targetValue) {
+        resolve(true)
+      }
+    })
+  })
+}
+```
+
+接下来就只需要在每次 set 操作时获取 effectMap 中的回调并执行即可：
+```ts
+set(target, prop, newValue) {
+  target[prop as keyof typeof target] = newValue
+  const cbs = effectMap.get(raw)
+  if (cbs) cbs.forEach(cb => cb())
+  return true
+}
+```
+
+完整的代码可以参考：https://github/ray-d-song/EchoRSS/web/src/lib/util.ts
