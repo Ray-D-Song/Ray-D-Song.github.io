@@ -8,7 +8,7 @@ tag: ['JavaScript', 'Deep Learning', 'TensorFlow.js']
 仓库：https://github.com/ray-d-song/guesslang-js  
 效果展示：https://ray-d-song.github.io/guesslang-js/  
 
-最近我正在完成一个叫 [EchoRSS](https://github.com/Ray-D-Song/EchoRSS.git) 的阅读器项目，有一个我非常想要的功能，就是拦截订阅中的外链跳转（阅读全文、引用啥之类），直接在当前页内显示。  
+最近我正在完成一个叫 [EchoRSS](https://github.com/Ray-D-Song/EchoRSS.git) 的阅读器项目，有一个我非常想要的功能，就是拦截订阅中的外链跳转（阅读全文、引用啥的），直接在当前页内显示。  
 
 有一个问题是返回的HTML代码块失去了语言标注（或者原先在 pre 和 code 标签上就没有标注语言），这样没法用 shiki 或者 prism.js 之类的工具进行代码高亮。  
 
@@ -29,7 +29,7 @@ hljs 有四个问题。
 
 ## 3. [guesslang](https://github.com/yoeo/guesslang)
 guesslang 是一个基于 tensorflow.js 的机器学习项目。  
-Microsoft 在 2021 年将用 tensorflow.js 将这个项目移植到 node.js 上，为 vscode增加了[自动语言检测](https://code.visualstudio.com/updates/v1_60#_automatic-language-detection)的功能。  
+Microsoft 在 2021 年用 tensorflow.js 将这个项目移植到 node.js 上，为 vscode增加了[自动语言检测](https://code.visualstudio.com/updates/v1_60#_automatic-language-detection)的功能。  
 
 一个越南小哥[hieplpvip](https://github.com/hieplpvip)三年前又将这个项目移植到了[浏览器上](https://github.com/hieplpvip/guesslang-js)，不过也有三个问题：
 - 漏内存，疯狂漏内存...
