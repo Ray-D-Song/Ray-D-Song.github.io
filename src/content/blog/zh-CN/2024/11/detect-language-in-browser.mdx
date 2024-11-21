@@ -1,0 +1,46 @@
+---
+title: '如何在浏览器中检测代码语言'
+date: '2024-11-21'
+cover: ''
+tag: ['JavaScript', 'Deep Learning', 'TensorFlow.js']
+---
+
+仓库：https://github.com/ray-d-song/guesslang-js  
+效果展示：https://ray-d-song.github.io/guesslang-js/  
+
+最近我正在完成一个叫 [EchoRSS](https://github.com/Ray-D-Song/EchoRSS.git) 的阅读器项目，有一个我非常想要的功能，就是拦截订阅中的外链跳转（阅读全文、引用啥之类），直接在当前页内显示。  
+
+有一个问题是返回的HTML代码块失去了语言标注（或者原先在 pre 和 code 标签上就没有标注语言），这样没法用 shiki 或者 prism.js 之类的工具进行代码高亮。  
+
+我找到了三个检测代码语言的方案：  
+
+## 1. [linguist](https://github.com/github-linguist/linguist)
+这是一个部署在服务器上的 Ruby 项目，Github 用它来检测仓库的语言构成，如果你需要极高的准确度且可以在服务端运算的话，这是最优解。
+
+## 2. [hljs](https://github.com/highlightjs/highlight.js)
+highlight.js 是一个非常知名的网页代码高亮库，也是唯一一个提供自动代码检测的高亮库。  
+原理很简单，就是枚举语言的关键词，用这些关键词去一个个匹配文本，最后看哪个的匹配度最高。  
+
+hljs 有四个问题。
+- 对代码长度的要求很高，大多数语言至少要 300 个字符才能达到比较合格的准确度。  
+- 检测语言的部分并不是单独的模块，而是跟 parser、render 紧紧的耦合在一起，代码写的也非常命令式，很难提取有用的部分
+- 如果不提取检测模块，直接用 hljs 高亮，会丢失代码原有的一些格式（换行和缩进）
+- 需要进行大量的正则匹配，性能较差，又因为原因 2，没法放到 web worker 中运行。
+
+## 3. [guesslang](https://github.com/yoeo/guesslang)
+guesslang 是一个基于 tensorflow.js 的机器学习项目。  
+Microsoft 在 2021 年将用 tensorflow.js 将这个项目移植到 node.js 上，为 vscode增加了[自动语言检测](https://code.visualstudio.com/updates/v1_60#_automatic-language-detection)的功能。  
+
+一个越南小哥[hieplpvip](https://github.com/hieplpvip)三年前又将这个项目移植到了[浏览器上](https://github.com/hieplpvip/guesslang-js)，不过也有三个问题：
+- 漏内存，疯狂漏内存...
+- 只支持 `<script>` 标签引入 umd 格式，不支持 esm，不支持 bundle
+- 同样又因为原因 2，不支持 web worker
+
+而且这位小哥已经不再维护这个项目，3 月份有个支持 esm 的 feat request 一直没有回复。  
+
+所以我提取了 hljs 中的检测模块，又 fork guesslang-js 修复了上面那些问题，对比了一下两种方案，最终 guesslang 胜出，产物就是这个：
+https://github.com/ray-d-song/guesslang-js  
+
+貌似叨太多了，也许未来会有人需要这个，所以 po 一下。
+
+如果有人了解 tensorflow.js 的话，希望可以推荐一些学习材料，我想进一步改为 web gpu 计算来提升效率。
