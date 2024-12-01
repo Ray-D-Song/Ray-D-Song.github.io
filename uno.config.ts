@@ -27,7 +27,7 @@ export default defineConfig({
       color: '#D0D0D0',
     }],
     ['bg-light', {
-      background: '#F5EFD9',
+      background: '#EAE1C2',
     }],
     ['bg-dark', {
       background: '#1B1B1F',
