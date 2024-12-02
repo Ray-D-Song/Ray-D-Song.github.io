@@ -1,0 +1,256 @@
+最近开始恶补 React 基础，经常陷入「为什么这个不奏效？为什么这个能奏效？」的疑惑，所以写了这个实用主义的教程（也包含我对 React 的一些抱怨）。  
+
+> 这是一个实用主义的教程，所以不会涉及太多原理性的东西，我也不想陷入各种「模式和反模式」的争论。
+> 事实上，我认为社区中关于「模式」的争论，90% 都是无意义的，因为每个项目都有自己的实际情况(或是个人偏好)，很难说哪种模式是绝对的好。
+
+# 核心: 状态
+有一个著名的 React 公式：
+
+UI = f(state)
+
+首先，什么是 state(状态)？  
+例如你有一个登录页，用户会输入账号密码，然后点击登录按钮，类似于下面这样的 HTML 结构:  
+
+```html
+<form>
+  <input type="text" name="username" />
+  <input type="password" name="password" />
+  <button type="submit">登录</button>
+</form>
+```
+如果你使用原生 JS 或者 jQuery，为了获取表单数据，你可能会这样做：
+
+```js
+const formData = new FormData(document.getElementById('login-form'))
+const username = formData.get('username')
+const password = formData.get('password')
+```
+
+原生 Web API 以 HTML 为核心，你需要的是从 HTML 中「提取数据」。  
+在 React 中，根据公式 UI = f(state)，视图（也就是 HTML）是根据状态生成的。  
+
+所以，我们要做的是定义用户名和密码的状态，然后根据状态生成视图。
+在 React 中，我们使用 `useState` 来定义状态。  
+useState 接受状态的初始值，返回状态和更新状态的方法。
+```tsx
+function LoginForm() {
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+
+  return (
+    <>
+      <input type="text" value={username} onChange={e => setUsername(e.target.value)} />
+      <input type="password" value={password} onChange={e => setPassword(e.target.value)} />
+    </>
+  )
+}
+```
+
+我们定义了一个叫做 `LoginForm` 的方法，它实际上就是公式中的 `f`，`f` 接受状态(也就是 `username` 和 `password`)，返回视图。  
+这样看这个公式其实有点奇怪，因为我们在函数内部定义了状态，然后又根据状态生成视图。  
+因为正确的理解方式是：
+```tsx
+function LoginForm([username='', setUsername], [password='', setPassword]) {
+
+  return (
+    // ...
+  )
+}
+```
+
+> 为什么我们不能直接用上面这个写法呢？  
+> 因为 useState 实际上是将状态外置给 React 管理，这样的话在并发渲染时 React 可以决定是丢弃还是 commit，这个和软件事务内存（Software Transactional Memory）的原理是一样得。
+> (上面的回答源自于 React team 成员黄玄，我个人建议不要纠结这个)
+
+# 核心2：副作用
+先不用纠结什么是副作用，想象你要用 React 做一个 todoList，每次进入页面，你都需要从服务器拉取数据。
+```tsx
+function TodoList() {
+  const [todos, setTodos] = useState([])
+
+  // 模拟从服务器拉取数据
+  fetchTodos()
+    .then(setTodos)
+    .catch(console.error)
+
+  return (
+    <div>
+      {todos.map(todo => <div key={todo.id}>{todo.title}</div>)}
+    </div>
+  )
+}
+```
+上面的写法看起来非常完美，渲染页面就会执行 `fetchTodos` 方法，这样就获取到了数据。  
+实际上应用会不停地请求，不停地渲染。
+因为在 fetchTodos 方法中，我们调用了 `setTodos`，这会触发组件的重新渲染。而组件的重新渲染又会调用 `fetchTodos`，这样就陷入了死循环。
+
+## useEffect
+在 React 中，请求数据、订阅、手动更改 DOM 都被归于「副作用」，需要使用 `useEffect` 来处理这些副作用。
+正确的写法如下：  
+```tsx
+useEffect(() => {
+  fetchTodos()
+    .then(setTodos)
+    .catch(console.error)
+}, [])
+```
+可以看到，请求的过程被包裹在了 `useEffect` 中，而 `useEffect` 的第二个参数是一个空数组，这意味着这个副作用只会在组件挂载（也就是首次渲染时）执行一次。  
+
+第二个参数是可选的，如果传入一个数组，那么当数组中的任意一个值发生变化时，副作用都会执行。  
+如果第二个参数不传，那么每次渲染时副作用都会执行。  
+如果第二个参数传入一个空数组，那么副作用只会在组件挂载时执行一次。  
+
+我知道你想说什么：这又是什么脱裤子放屁的写法？  
+
+我们先从理论的角度出发，官方对 `useEffect` 的定义是：
+useEffect 允许你暂时从纯函数中脱离，将组件和`外部系统同步`。  
+上面的请求数据就是一个典型的同步操作。  
+
+> 实际上，useEffect 是一个屎兜子（西方开发者应该会称之为逃生舱）。
+> useEffect 承载了太多功能，导致针对它的模式和反模式非常多。
+> 比如，你会看到有些人用 useEffect 获取 DOM 实例，其实`没什么必要`
+
+事实上，到这里你已经掌握了 React 的全部内容。  
+我知道你肯定想问：剩下的那些 Hook 是干嘛的？
+
+剩下的 hook 都是给纯函数擦屁股的。
+因为纯函数是一个偏执到有些离谱的追求，大多数的开发场景并不适用，所以 React 需要提供一些方法来打破这些限制，`useEffect` 就是其中一个。
+接下来让我们看看剩下的 Hook 都用来擦什么屁股 ：）
+
+# useMemo & memo & useCallback
+
+## useMemo
+因为每一次重新渲染，都会执行渲染函数，当然也包括函数体内的所有计算。
+还是那个 TodoList 的例子，假设我们有一个计算函数：
+```tsx
+function TodoList({ todos, theme }: { todos: Todo[]; theme: 'light' | 'dark' }) {
+  const visibleTodos = todos.filter(todo => todo.visible)
+
+  return <div className={theme}>
+    {visibleTodos.map(todo => <div key={todo.id}>{todo.title}</div>)}
+  </div>
+}
+```
+当用户切换主题时，TodoList 会重新渲染，而 `visibleTodos` 也会重新计算，这显然是多余的。
+这时候我们就可以使用 `useMemo` 来包裹过滤逻辑：
+```tsx
+const visibleTodos = useMemo(() => todos.filter(todo => todo.visible), [todos])
+```
+useMemo 的第二个参数是一个数组，只有当数组中的任意一个值发生变化时，才会重新计算。
+
+## memo
+
+通过上面的方法，我们避免了重复计算，但是对于组件呢？我们怎么避免重复渲染？
+比如 TodoList 组件被包含在 App 组件中，App 组件被包含在 Layout 组件中。
+```tsx
+function Layout() {
+  return <App user={user} />
+}
+
+function App({ user }: { user: User }) {
+  return <main>
+    <h1>Hello, {user.name}</h1>
+    <TodoList todos={todos} theme={'light'} />
+  </main>
+}
+```
+此时，当 user 变化时，App 组件会重新渲染，而 App 组件的子组件 TodoList 组件也会跟着重新渲染。  
+为了防止这种情况，我们可以使用 `memo` 来包裹 TodoList 组件：
+```tsx
+const MemoizedTodoList = memo(TodoList)
+```
+被 memo 包裹的组件，只有在 props 发生变化时才会重新渲染。
+
+## useCallback
+在组件内部，我们还会定义一些方法，比如处理用户点击事件的`handleClick`。  
+```tsx
+function Component() {
+  const handleClick = () => {
+    console.log('clicked')
+  }
+
+  return // ...
+}
+```
+组件每次刷新都会重新创建 `handleClick` 方法，这显然是多余的。  
+这时候我们就可以使用 `useCallback` 来包裹 `handleClick` 方法：
+```tsx
+const handleClick = useCallback(() => {
+  console.log('clicked')
+}, [])
+```
+useCallback 的第二个参数是一个数组，只有当数组中的任意一个值发生变化时，才会重新创建 `handleClick` 方法。
+
+## 总结
+useMemo、memo、useCallback 其实都是解决同一个问题：  
+组件重新渲染时，有很多内容是可以复用的，我们希望 React 能复用这些内容，而不是重新创建。  
+
+> 为什么 React 不默认帮我们做这些事情？  
+> 2021 年的 React Conf 上提出了工具`React forget`，2024 年推出了 beta 版本，更名为`React Compiler`
+
+# 
+
+## useState
+
+useState 是 React 最常用的 Hook，用于在函数组件中添加和管理`状态`。
+```ts
+const [count, setCount] = useState(0)
+
+setCount(1)
+setCount(count + 1)
+// 传递函数的写法
+setCount(prevCount => prevCount + 1)
+```
+
+### 更新对象的 state
+```ts
+const [user, setUser] = useState({ name: 'Ray', age: 20 })
+
+setUser({ ...user, age: 21 })
+```
+上面这个看起来非常脱裤子放屁，原因是「状态都是只读的」，只能执行替换操作，而不能直接修改。
+下面的数组操作也是一样的道理。
+
+### 更新数组的 state
+```ts
+const [items, setItems] = useState([{ id: 1, name: 'Ray' }, { id: 2, name: 'Tom' }])
+
+// 添加元素
+setItems([...items, { id: 3, name: 'Jerry' }])
+// 删除元素
+setItems(items.filter(item => item.id !== 2))
+// 替换元素
+function updateItem(updatedItem: { id: number; name: string }) {
+  setItems(items.map(i => i.id === updatedItem.id ? updatedItem : i))
+}
+```
+
+### 用 immer 管理复杂的更新
+上面的操作非常麻烦，你需要非常多重复的「无用代码」。  
+所以推荐使用 immer 来管理复杂的更新。  
+
+```ts
+import { produce } from 'immer'
+
+const todoList = [
+  {
+    title: "Learn TypeScript",
+    done: true
+  },
+  {
+    title: "Try Immer",
+    done: false
+  }
+]
+const nextState = produce(todoList, draft => {
+  draft[0].done = false
+  draft[1].done = true
+})
+```
+
+如果没有 immer，你可能会写出这样的代码：
+```ts
+```
+
+# 参考
+- [React推荐函数组件是纯函数，但是组件有状态就不可能是纯函数，怎么理解有状态的纯函数？ 黄玄的回答](https://www.zhihu.com/question/537538929/answer/2527746562)

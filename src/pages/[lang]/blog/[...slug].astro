@@ -59,11 +59,18 @@ const remark = blog.data.remark
 
 <script>
 import setupCopy from '../../../utils/copy'
+import setupMermaid from '../../../utils/mermaid'
 import setupLineNum from '../../../utils/lineNum'
 
 const codeBlocks = document.querySelectorAll('.astro-code')
 
-codeBlocks.forEach((block) => setupCopy(block as HTMLElement))
+codeBlocks.forEach((block) => {
+  if ((block as HTMLElement).dataset.language === 'mermaid') {
+    setupMermaid(block as HTMLElement)
+  } else {
+    setupCopy(block as HTMLElement)
+  }
+})
 
 codeBlocks.forEach((block) => {
   const codeTag = block.querySelector('code')
@@ -228,6 +235,26 @@ pre code {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+}
+
+.mermaid-con {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px 0 0 20px;
+  background-color: white;
+}
+
+g.main {
+  scale: 0.9;
+}
+g.label text {
+  font-size: 20px;
+}
+
+pre svg {
+  overflow: visible;
 }
 </style>
 

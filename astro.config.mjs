@@ -3,23 +3,21 @@ import unocss from "@unocss/astro";
 import sitemap from "@astrojs/sitemap";
 import vue from "@astrojs/vue";
 import mdx from "@astrojs/mdx";
-import embeds from 'astro-embed/integration'
-import {transformerNotationDiff, transformerNotationHighlight} from '@shikijs/transformers'
+import embeds from 'astro-embed/integration';
+import { transformerNotationDiff, transformerNotationHighlight } from '@shikijs/transformers';
 
 // https://astro.build/config
 export default defineConfig({
-  integrations: [
-    unocss({
+  integrations: [unocss({
     injectReset: true
-    }),
-    sitemap({
+  }), sitemap({
     i18n: {
       defaultLocale: 'zh-CN',
       locales: {
         'zh-CN': 'zh-CN',
         en: 'en'
       }
-    },
+    }
   }), vue(), embeds(), mdx()],
   site: 'https://ray-d-song.com',
   markdown: {
@@ -31,11 +29,8 @@ export default defineConfig({
         light: 'github-light',
         dark: 'vitesse-dark'
       },
-      transformers: [
-        transformerNotationDiff(),
-        transformerNotationHighlight()
-      ]
+      transformers: [transformerNotationDiff(), transformerNotationHighlight()]
     }
   },
-  output: "static",
+  output: "static"
 });
