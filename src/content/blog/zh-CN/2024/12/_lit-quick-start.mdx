@@ -1,0 +1,106 @@
+---
+title: '前端框架 Lit 快速上手'
+date: '2024-12-3'
+cover: 'https://r2.ray-d-song.com/2024/12/d6ef058b27acd988548cd1775e65f14e.png'
+tag: ['Frontend', 'Lit']
+---
+
+这篇文章包含`模板`、`生命周期`等名词，假定你有`React、Vue、Angular`之类的前端框架使用经验。  
+
+## 什么是 Lit
+Lit 是 Google 推出的一个用于构建快速、轻量级 web 组件的简单库，本质是针对 Web Components API 的封装。  
+
+## Why Lit
+Lit 有一个非常棒的特性，就是无需编译和打包，你需要的只是原生的 JavaScript。  
+同时带来的另一个好处是，你可以将 Lit 嵌入到任何项目里，Vue、React，甚至包括前后端不分离的项目，大大提高了组件的复用性。  
+
+## 组件化
+Lit 使用 class 和`装饰器`来定义组件，以下是一个最简单的示例：
+
+```ts
+@customElement("hello-world")
+export class HelloWorld extends LitElement {
+  render() {
+    return html`<div>Hello World</div>`;
+  }
+}
+```
+
+`customElement` 装饰器用于定义一个自定义元素，`LitElement` 是 Lit 提供的基类，用于创建自定义元素。  
+`render` 方法用于定义组件的模板，返回一个 `TemplateResult` 对象，`html` 是 Lit 提供的模板字符串函数，用于定义模板内容。
+
+## 响应式
+
+### @property 装饰器
+Lit 通过 `@property` 装饰器来定义`响应式类属性`，以下是一个示例：
+
+```ts
+import { html, LitElement } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
+
+@customElement("hello-world")
+export class HelloWorld extends LitElement {
+  // 定义一个响应式类属性
+  @property({ type: String }) name = "World";
+
+  protected render() {
+    return html`
+      <!-- 通过模板字符串和 this 访问属性和方法 -->
+      <div>Hello ${this.name}</div>
+      <button @click=${this._handleClick}>Change Name</button>
+    `;
+  }
+
+  // 定义一个私有方法，面向对象的常见模式
+  private _handleClick() {
+    this.name = "Lit";
+  }
+}
+```
+
+### properties 字段
+另一个声明响应式类属性的方式是使用`properties`字段，以下是一个示例：
+
+```ts
+@customElement("hello-world")
+export class HelloWorld extends LitElement {
+
+  // 使用静态属性 properties 来声明响应式类属性
+  static properties = {
+    name: { type: String }
+  }
+  // 初始化属性值
+  name = "World";
+
+  protected render() {
+    return html`
+      <div>Hello ${this.name}</div>
+      <button @click=${this._handleClick}>Change Name</button>
+    `;
+  }
+
+  private _handleClick() {
+    this.name = "Lit";
+  }
+}
+```
+
+## 生命周期
+Lit 包含标准的 Web Component 生命周期钩子，还额外提供了`响应式更新周期`。
+
+Web Component 生命周期钩子：
+
+- `constructor`： 自定义元素`创建和更新`时调用。
+- `connectedCallback`：当元素被插入到 DOM 中时触发，相当于 Vue 的`mounted` 和 React 的`useEffect(() => {}, [])`。
+- `disconnectedCallback`：当元素从 DOM 中移除时触发，相当于 Vue 的`unmounted` 和 React 的`useEffect(() => {}, [])的清理函数`。
+- `attributeChangedCallback`：当元素的`observedAttributes` 列表中的属性发生变化时触发，相当于 Vue 的`watch` 和 React 的`useEffect(() => {}, [props])`。
+
+Lit 响应式更新周期：
+
+- `update`：当元素的属性或状态发生变化时触发，相当于 Vue 的`watch` 和 React 的`useEffect(() => {}, [props])`。
+
+## 模版
+
+## props
+
+

@@ -78,6 +78,9 @@ importers:
       unocss:
         specifier: ^0.61.9
         version: 0.61.9(postcss@8.4.40)(rollup@4.20.0)(vite@5.3.5(@types/node@22.1.0))
+      unocss-preset-chinese:
+        specifier: ^0.3.3
+        version: 0.3.3(unocss@0.61.9(postcss@8.4.40)(rollup@4.20.0)(vite@5.3.5(@types/node@22.1.0)))
 
 packages:
 
@@ -1231,8 +1234,14 @@ packages:
   '@unocss/core@0.61.9':
     resolution: {integrity: sha512-2W1YZQIWXcueGdbXU/ZCqn/8yQhWk8e8kAHFkVlbc9rictkd2UmPB9nIZ8Ii1tMwt6F0TT6vfHbLJEGCV08o2g==}
 
+  '@unocss/core@0.62.4':
+    resolution: {integrity: sha512-Cc+Vo6XlaQpyVejkJrrzzWtiK9pgMWzVVBpm9VCVtwZPUjD4GSc+g7VQCPXSsr7m03tmSuRySJx72QcASmauNQ==}
+
   '@unocss/extractor-arbitrary-variants@0.61.9':
     resolution: {integrity: sha512-ii42/hKbhgeBBOy86729t6/HeGmxUcHM8FprPeb/v/DfYsCkjDvMYVynX3FN/K5pR2WV+HHp6TQS7GbTmRIN0g==}
+
+  '@unocss/extractor-arbitrary-variants@0.62.4':
+    resolution: {integrity: sha512-e4hJfBMyFr6T6dYSTTjNv9CQwaU1CVEKxDlYP0GpfSgxsV58pguID9j1mt0/XZD6LvEDzwxj9RTRWKpUSWqp+Q==}
 
   '@unocss/inspector@0.61.9':
     resolution: {integrity: sha512-kUcQ/h8/yAfkqL2eCGVFyB0IGSPdR0dx2HH4V+mdSMfd8yKFR/BQys3mBvqZwSZu5a0+iisFHHq9wr+/I5DtHQ==}
@@ -1251,6 +1260,9 @@ packages:
 
   '@unocss/preset-mini@0.61.9':
     resolution: {integrity: sha512-qhagWfdM7ytRWf4wFfrAcdeCUCVD9wDVrM+9evAmuOnMXWEiVZCjfwhjjFu+8lM7g+38n+gi7VcrNuTiZ8fHBA==}
+
+  '@unocss/preset-mini@0.62.4':
+    resolution: {integrity: sha512-1O+QpQFx7FT61aheAZEYemW5e4AGib8TFGm+rWLudKq2IBNnXHcS5xsq5QvqdC7rp9Dn3lnW5du6ijow5kCBuw==}
 
   '@unocss/preset-tagify@0.61.9':
     resolution: {integrity: sha512-E+54+uSe+btOnQDlh8XjDUXhwxJd6/TL/8Rdl+7Pg6m+JNXudEt7xOd81L/KlDPD2tYYH9g/dQUaDN5aJyfRPQ==}
@@ -1272,6 +1284,10 @@ packages:
 
   '@unocss/rule-utils@0.61.9':
     resolution: {integrity: sha512-54Hw0nF+3ga70ETo3kes4He62wdsB4dHMgEiD/DEmJzyVY3ZuG/sIVAgkxjMQDo5w4SSYU/Ys1QaY+IQmeJHFQ==}
+    engines: {node: '>=14'}
+
+  '@unocss/rule-utils@0.62.4':
+    resolution: {integrity: sha512-XUwLbLUzL+VSHCJNK5QBHC9RbFehumge1/XJmsRfmh0+oxgJoO1gvEvxi57gYEmdJdMRJHRJZ66se6+cB0Ymvw==}
     engines: {node: '>=14'}
 
   '@unocss/scope@0.61.9':
@@ -3411,6 +3427,17 @@ packages:
     resolution: {integrity: sha512-gptHNQghINnc/vTGIk0SOFGFNXw7JVrlRUtConJRlvaw6DuX0wO5Jeko9sWrMBhh+PsYAZ7oXAiOnf/UKogyiw==}
     engines: {node: '>= 10.0.0'}
 
+  unocss-preset-chinese@0.3.3:
+    resolution: {integrity: sha512-t6AZ5HMb2pMwSuBp1ntVViKUwPufLWRELoptkAIQrK53j9CtGU3wGXGcpas8HQXaG5fzSpwmGRJagB+7bz1ZZw==}
+    peerDependencies:
+      '@unocss/nuxt': '*'
+      unocss: '*'
+    peerDependenciesMeta:
+      '@unocss/nuxt':
+        optional: true
+      unocss:
+        optional: true
+
   unocss@0.61.9:
     resolution: {integrity: sha512-D7nEObT1lhCUwXU5MoQ2Msh5S5g1EHVVSqDNM2ODs6dqWSboDCsRTPZQiyQmV9vCobrjYcvAFno9ZAgO7pvurw==}
     engines: {node: '>=14'}
@@ -4828,9 +4855,15 @@ snapshots:
 
   '@unocss/core@0.61.9': {}
 
+  '@unocss/core@0.62.4': {}
+
   '@unocss/extractor-arbitrary-variants@0.61.9':
     dependencies:
       '@unocss/core': 0.61.9
+
+  '@unocss/extractor-arbitrary-variants@0.62.4':
+    dependencies:
+      '@unocss/core': 0.62.4
 
   '@unocss/inspector@0.61.9':
     dependencies:
@@ -4869,6 +4902,12 @@ snapshots:
       '@unocss/extractor-arbitrary-variants': 0.61.9
       '@unocss/rule-utils': 0.61.9
 
+  '@unocss/preset-mini@0.62.4':
+    dependencies:
+      '@unocss/core': 0.62.4
+      '@unocss/extractor-arbitrary-variants': 0.62.4
+      '@unocss/rule-utils': 0.62.4
+
   '@unocss/preset-tagify@0.61.9':
     dependencies:
       '@unocss/core': 0.61.9
@@ -4901,6 +4940,11 @@ snapshots:
   '@unocss/rule-utils@0.61.9':
     dependencies:
       '@unocss/core': 0.61.9
+      magic-string: 0.30.11
+
+  '@unocss/rule-utils@0.62.4':
+    dependencies:
+      '@unocss/core': 0.62.4
       magic-string: 0.30.11
 
   '@unocss/scope@0.61.9': {}
@@ -7733,6 +7777,13 @@ snapshots:
   universalify@0.2.0: {}
 
   universalify@2.0.1: {}
+
+  unocss-preset-chinese@0.3.3(unocss@0.61.9(postcss@8.4.40)(rollup@4.20.0)(vite@5.3.5(@types/node@22.1.0))):
+    dependencies:
+      '@unocss/core': 0.62.4
+      '@unocss/preset-mini': 0.62.4
+    optionalDependencies:
+      unocss: 0.61.9(postcss@8.4.40)(rollup@4.20.0)(vite@5.3.5(@types/node@22.1.0))
 
   unocss@0.61.9(postcss@8.4.40)(rollup@4.20.0)(vite@5.3.5(@types/node@22.1.0)):
     dependencies:
