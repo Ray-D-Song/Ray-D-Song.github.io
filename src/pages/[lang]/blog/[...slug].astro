@@ -35,13 +35,13 @@ const remark = blog.data.remark
           </div>
         )
       }
-      <h1 class={`text-3xl font-600 mt-5 mb-2 text-center ${lang === 'zh-cn' ? 'chinese' : ''}`}>{blog.data.title}</h1>
+      <h1 class={`text-3xl font-600 mt-5 mb-2 text-center`}>{blog.data.title}</h1>
       <div class="mb-10">
         <span class="text-sm text-gray-5">{blog.data.date}</span>
         <span class="text-sm text-gray-5"> • </span>
         <span class="text-sm text-gray-5">{readingTime}min</span>
       </div>
-      <article class={`prose w-full ${lang === 'zh-cn' ? 'chinese' : ''}`}>
+      <article class={`prose w-full`}>
         <Content />
       </article>
       <div id="tcomment"></div>
@@ -83,6 +83,45 @@ codeBlocks.forEach((block) => {
 </script>
 
 <style is:inline>
+/* code style */
+.astro-code {
+  line-height: unset;
+  word-break: break-all;
+}
+.line {
+  width: 100%;
+  white-space: pre-wrap;
+}
+.line-num {
+  user-select: none;
+}
+.prose {
+  max-width: 100% !important;
+}
+html.light .astro-code {
+  background-color: #f6f8fa !important;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+}
+</style>
+
+
+<style is:inline>
+.mermaid-con {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px 0 0 20px;
+  background-color: white;
+}
+
+.twikoo {
+  margin-top: 60px;
+}
+</style>
+
+<style is:inline>
 .link-preview {
   margin: 0 auto;
   width: 70% !important;
@@ -109,20 +148,13 @@ html.dark .link-preview img {
   opacity: 90%;
 }
 
-html.light .astro-code {
-  background-color: #f6f8fa !important;
-  border: 1px solid #d0d7de;
-  border-radius: 6px;
-}
 
-html.light .astro-code span {
-  color: #24292f !important;
+html.light .prose {
+  --un-prose-headings: #24292f;
 }
 
 .prose {
-  --un-prose-headings: #24292f;
   --un-prose-links: #0969da;
-  
   h1, h2, h3 {
     font-weight: 600;
     margin-top: 2em;
@@ -140,5 +172,20 @@ html.light .link-preview {
   border: 1px solid #d0d7de;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   color: #24292f;
+}
+
+blockquote {
+  border-left: 4px solid #4D4E55 !important;
+  background: #F3E2A3;
+  padding-left: 1rem !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  margin-top: 1rem !important;
+  margin-bottom: 1rem !important;
+}
+
+html.dark blockquote {
+  border-left: 4px solid #4D4E55 !important;
+  background: #212121;
 }
 </style>

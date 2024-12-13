@@ -27,7 +27,7 @@ export default defineConfig({
       wrap: true,
       themes: {
         light: 'github-light',
-        dark: 'vitesse-dark'
+        dark: 'nord'
       },
       transformers: [transformerNotationDiff(), transformerNotationHighlight()]
     }

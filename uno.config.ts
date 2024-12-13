@@ -1,6 +1,5 @@
 import { defineConfig, presetIcons, presetUno, presetTypography } from 'unocss'
 import { icons } from '@iconify-json/fe/index.js'
-import presetChinese, { chineseTypography } from 'unocss-preset-chinese'
 
 export default defineConfig({
   theme: {
@@ -13,13 +12,15 @@ export default defineConfig({
     animation: {
       'fade-in': 'fade-in 2s ease-in-out',
     },
+    fontFamily: {
+      sans: ['Noto Sans SC', 'sans-serif'],
+      mono: ['JetBrains Mono', 'monospace'],
+    }
   },
   presets: [
     presetUno(),
     presetIcons(),
     presetTypography(),
-    chineseTypography(),
-    presetChinese(),
   ],
   safelist: Object.keys(icons.icons).map(icon => `i-fe-${icon}`).slice(0, 30),
   rules: [
