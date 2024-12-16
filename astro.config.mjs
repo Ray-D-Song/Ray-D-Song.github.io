@@ -23,13 +23,25 @@ export default defineConfig({
   markdown: {
     syntaxHighlight: 'shiki',
     shikiConfig: {
-      langs: ['javascript', 'html', 'css', 'json', 'typescript', 'markdown', 'shell', 'yaml', 'dockerfile', 'go', 'python', 'rust', 'java', 'php', 'ruby', 'sql', 'swift', 'kotlin', 'c', 'cpp', 'csharp'],
+      langs: [
+        'javascript', 'html', 'css',
+        'json', 'typescript', 'markdown',
+        'shell', 'yaml', 'dockerfile',
+        'go', 'python', 'rust',
+        'java', 'php', 'ruby',
+        'sql', 'swift', 'kotlin',
+        'c', 'cpp', 'csharp',
+        'vue'
+      ],
       wrap: true,
       themes: {
         light: 'github-light',
         dark: 'nord'
       },
-      transformers: [transformerNotationDiff(), transformerNotationHighlight()]
+      transformers: [
+        transformerNotationDiff(),
+        transformerNotationHighlight()
+      ]
     }
   },
   output: "static"

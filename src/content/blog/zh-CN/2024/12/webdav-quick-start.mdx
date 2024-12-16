@@ -1,0 +1,211 @@
+---
+title: 自部署 WebDAV 快速上手
+date: "2024-12-16"
+description: 介绍如何自部署 WebDAV 服务，并快速上手使用。
+tag: ['WebDAV', 'self-host']
+cover: ''
+---
+
+## 什么是 WebDAV
+简单来说，WebDAV 就是基于 HTTP 协议的文件系统，可以挂载后像本地文件一样使用。
+
+## 部署
+有许多开源的 WebDAV 服务，我使用的是 Go 编写的 [webdav](https://github.com/hacdias/webdav)。  
+优点是使用简单，直接下载编译好的二进制文件，然后运行即可。  
+
+在 [Releases](https://github.com/hacdias/webdav/releases) 页面下载对应平台的二进制文件，然后执行后续操作：  
+```bash
+tar -zxvf webdav-linux-amd64.tar.gz
+```
+
+解压后包含以下文件：
+- `webdav` 二进制文件
+- `LICENSE` 许可证
+- `README.md` 描述文件
+
+### 配置
+在`webdav`所在目录下创建`config.yml`文件，参考配置如下：  
+```yml
+# 监听地址
+address: 0.0.0.0
+# 监听端口
+port: 6065
+# 如果您想直接启用 TLS，相关的 TLS 设置。
+# TLS 相关设置
+tls: false
+cert: cert.pem
+key: key.pem
+
+# 应用于 WebDAV 路径的前缀。默认为 '/'。
+prefix: /
+
+# 启用或禁用调试日志记录。默认为 'false'。
+debug: false
+
+# 禁用嗅探文件以检测其内容类型。默认为 'false'。
+noSniff: false
+
+# 服务器是否在受信任的代理后运行。如果为 true，
+# 将使用 X-Forwarded-For 头来记录远程地址
+# （如果可用）。
+behindProxy: false
+
+# 用户连接时可以访问的目录。
+# 该目录将被用户使用，除非他们定义了自己的'directory'。
+# 默认为 '.'（当前目录）。
+directory: .
+
+# [!code highlight:5]
+# 用户的默认权限。此选项不区分大小写。可能的
+# 权限：C（创建）、R（读取）、U（更新）、D（删除）。您可以组合多个
+# 权限。例如，要允许读取和创建，请设置 "RC"。默认为 "R"。
+permissions: R
+
+# 用户的默认权限规则。默认为无。规则从最后到第一个应用，
+# 即第一个匹配请求的规则将被应用。
+rules: []
+
+# 重新定义用户规则的行为。可以是：
+# - overwrite：当用户定义了规则时，这些规则将覆盖任何全局
+#   已定义的规则。也就是说，全局规则对用户不适用。
+# - append：当用户定义了规则时，这些规则将附加到全局
+#   已定义的规则。对于该用户，他们自己的特定规则将首先被检查，
+#   然后是全局规则。默认为 'overwrite'。
+rulesBehavior: overwrite
+
+# 日志配置
+log:
+  # 日志格式（'console'，'json'）。默认为 'console'。
+  format: console
+  # 启用或禁用颜色。默认为 'true'。仅在格式为 'console' 时应用。
+  colors: true
+  # 日志输出。您可以有多个输出。默认为仅 'stderr'。
+  outputs:
+  - stderr
+
+# CORS 配置
+cors:
+  # 是否应用 CORS 配置。默认为 'false'。
+  enabled: true
+  credentials: true
+  allowed_headers:
+    - Depth
+  allowed_hosts:
+    - http://localhost:8080
+  allowed_methods:
+    - GET
+  exposed_headers:
+    - Content-Length
+    - Content-Range
+
+# [!code highlight:18]
+# 用户列表。如果列表为空，则不会有身份验证。
+# 否则，将自动配置基本身份验证。
+#
+# 如果您将身份验证委托给其他服务，您可以使用基本身份验证代理
+# 用户名，然后使用选项禁用 webdav 的密码检查：
+#
+# noPassword: true
+users:
+  # 示例 'admin' 用户，使用明文密码。
+  - username: admin
+    password: admin
+  # 示例 'john' 用户，使用 bcrypt 加密密码，并具有自定义目录。
+  - username: john
+    password: "{bcrypt}$2y$10$zEP6oofmXFeHaeMfBNLnP.DO8m.H.Mwhd24/TOX2MWLxAExXi4qgi"
+    directory: /another/path
+  # 示例用户，其详细信息将从环境中获取。
+  - username: "{env}ENV_USERNAME"
+    password: "{env}ENV_PASSWORD"
+  - username: basic
+    password: basic
+    # 覆盖默认权限
+    permissions: CRUD
+    rules:
+      # 使用此规则，用户无法访问 /some/files。
+      - path: /some/file
+        permissions: none
+      # 使用此规则，用户可以在 /public/access/ 中创建、读取、更新和删除。
+      - path: /public/access/
+        permissions: CRUD
+      # 使用此规则，用户可以读取和更新所有以 .js 结尾的文件。它使用正则表达式。
+      - regex: "^.+.js$"
+        permissions: RU
+```
+
+### 启动
+```bash
+# 直接运行
+./webdav
+
+# 后台运行
+./webdav &
+```
+
+WebDAV 服务会自动读取同目录下的`config.yml`文件，默认的数据目录就是当前目录。  
+
+### 设置为开机自启动
+```bash
+# 创建 systemd 服务文件
+sudo vim /etc/systemd/system/webdav.service
+```
+配置文件内容如下：
+```bash
+[Unit]
+Description=WebDAV
+
+[Service]
+ExecStart=/path/to/webdav
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+启用服务：  
+记得将`/path/to/webdav`替换为实际路径。
+```bash
+sudo systemctl enable webdav.service
+sudo systemctl start webdav.service
+```
+
+### nginx 反代和 https 配置
+如果你不熟悉 nginx，可以先参考我写的 [nginx 配置 HTTPS 教程](/zh-cn/blog/nginx-config-https)。  
+
+在 nginx 配置中新增一个 server 配置，参考如下：  
+```nginx
+server {
+    listen 443 ssl;
+    # [!code highlight:5]
+    server_name your_domain.com;
+
+    ssl_certificate /path/to/your_certificate.crt;
+    ssl_certificate_key /path/to/your_private_key.key;
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+
+    location / {
+        proxy_pass http://localhost:6065; # [!code highlight]
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+其中需要关注的高亮行:
+- `your_domain.com` 替换为你的域名
+- `/path/to/your_certificate.crt` 替换为你的证书路径
+- `/path/to/your_private_key.key` 替换为你的私钥路径
+- `http://localhost:6065` 替换为你的服务地址
+
+保存配置文件后, 重启 Nginx 服务.  
+```bash
+sudo systemctl restart nginx
+```
+
+## 使用
+使用 WebDAV 的方式很多，这里介绍用 Mac 默认的 Finder 客户端使用 WebDAV。  
+在 Finder 中，选择`前往` -> `连接服务器`，输入你的域名和端口，然后输入用户名和密码，就可以像本地文件一样使用 WebDAV 了。  
+
+如果增改删的时候提示权限不足，请检查你的配置文件的高亮行部分，确保用户有相应的权限。  

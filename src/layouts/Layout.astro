@@ -154,6 +154,20 @@ document.querySelectorAll('.lang-btn').forEach((btn) => {
 </script>
 
 <style is:global>
+.astro-code {
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+.astro-code code {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+html.light .astro-code {
+  background-color: #f6f8fa;
+  border: 1px solid #d0d7de;
+}
 html.dark .astro-code,
 html.dark .astro-code span {
 	color: var(--shiki-dark) !important;
@@ -161,6 +175,19 @@ html.dark .astro-code span {
 	font-style: var(--shiki-dark-font-style) !important;
 	font-weight: var(--shiki-dark-font-weight) !important;
 	text-decoration: var(--shiki-dark-text-decoration) !important;
+}
+html.light .line.highlighted {
+  background-color: #c8c8c8 !important;
+}
+html.dark .line.highlighted {
+  background-color: #3B4252 !important;
+}
+html.dark .line.highlighted span {
+  background-color: #3B4252 !important;
+}
+.line.highlighted {
+  width: 100% !important;
+  display: inline-block !important;
 }
 
 p > code {
