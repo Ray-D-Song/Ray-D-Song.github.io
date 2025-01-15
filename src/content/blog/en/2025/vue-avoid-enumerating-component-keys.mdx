@@ -1,0 +1,65 @@
+---
+title: 'Weird Warning: Vue Avoid Enumerating Component Keys'
+date: '2025-1-15'
+tag: ['Vue', 'Debug']
+description: 'When packaging a Vue project and running it in the browser, the following warning occurs: Avoid app logic that relies on enumerating keys on a component instance'
+---
+
+## Problem Description
+When packaging a Vue project and running it in the browser, the following warning occurs:
+```bash
+[Vue warn]: Avoid app logic that relies on enumerating keys on a component instance.
+```
+
+## Problem Cause
+This warning means: Avoid enumerating keys on a component instance.  
+Vue allows enumerating keys on a component instance in the development environment through methods like `for` or `Object.keys`, but not in the production environment.  
+
+The abstract part is that when this warning occurs, the warn trace does not provide specific code line numbers, but instead indicates the `vue.runtime.esm-bundler.js` file.  
+The reason for this warning is also very strange, and it is not necessarily that there is actually an enumeration of keys on a component instance in the code.  
+
+## Possible Causes and Solutions
+### `vue-devtools` Debugging Tool Bug
+Vue Devtools listens to component instances, causing this issue. You can first uninstall `vue-devtools` to determine if the tool is the cause.  
+Upgrading `vue-devtools` or the Vue version (maybe) can solve the problem.  
+
+### `watch` Watched route object
+```javascript
+const route = useRoute()
+/**
+ * Watched the entire route object
+ * watch is default deep reactive, triggering this warning
+ */
+watch(() => route, () => {
+  // ...
+})
+
+// Modify to watch specific route properties
+watch(() => route.path, () => {
+  // ...
+})
+
+// Or use the default non-deep reactive watchEffect
+watchEffect(() => {
+  console.log(route.path)
+})
+```
+
+### Passing the entire to object in the route guard
+```javascript
+router.beforeEach((to, from, next) => {
+  addTab(to)
+})
+```
+This is the actual situation I encountered, where the entire to object was passed in the route guard, including the `component` property, causing this warning.  
+The correct approach is to pass only the properties of the to object that are needed.  
+```javascript
+router.beforeEach((to, from, next) => {
+  addTab(to.path)
+})
+```
+
+# References
+- [vue.js - Avoid app logic that relies on enumerating keys on a component instance - Stack Overflow](https://stackoverflow.com/questions/68100114/avoid-app-logic-that-relies-on-enumerating-keys-on-a-component-instance)
+- [Vue warn]: Avoid app logic that relies on enumerating keys on a component instance. The keys will be empty in production mode to avoid performance overhead. · Issue #2027 · vuejs/core](https://github.com/vuejs/core/issues/2027)
+- [Warning: Avoid app logic that relies on enumerating keys on a component instance. The keys will be empty in production mode to avoid performance overhead. · Issue #2856 · nuxt-modules/i18n](https://github.com/nuxt-modules/i18n/issues/2856)

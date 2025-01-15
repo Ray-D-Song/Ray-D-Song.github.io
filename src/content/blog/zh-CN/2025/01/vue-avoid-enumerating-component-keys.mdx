@@ -1,0 +1,65 @@
+---
+title: '奇怪的警告：Vue 避免枚举组件 key'
+date: '2025-1-15'
+tag: ['Vue', 'Debug']
+description: 'Vue 项目打包后，在浏览器中运行，会发生如下警告：Avoid app logic that relies on enumerating keys on a component instance'
+---
+
+## 问题描述
+Vue 项目打包后，在浏览器中运行，会发生如下警告：
+```bash
+[Vue warn]: Avoid app logic that relies on enumerating keys on a component instance.
+```
+
+## 问题原因
+这个警告的含义是：避免在组件实例上枚举键。  
+Vue 允许在开发环境下通过 for 或 Object.keys 等方法枚举组件实例上的键，生产环境下则不允许。  
+
+抽象之处在于，出现该警告时，warn trace 并不会给出具体的代码行数，而是提示在 `vue.runtime.esm-bundler.js` 文件中。  
+同时出现该警告的原因稀奇古怪，并不一定是代码中真的有枚举组件实例的键。  
+
+## 可能的原因和解决方案
+### `vue-devtools` 调试工具的 Bug
+Vue Devtools 会监听组件实例，引发这个问题。可以先将 `vue-devtools` 卸载，判断是否是工具原因。  
+通过升级 `vue-devtools` 或 Vue 版本（也许）可以解决。  
+
+### `watch` 监听了 route 对象
+```javascript
+const route = useRoute()
+/**
+ * 监听了整个 route 对象
+ * watch 默认是深层响应式，会触发该警告
+ */
+watch(() => route, () => {
+  // ...
+})
+
+// 修改为监听具体的 route 的属性
+watch(() => route.path, () => {
+  // ...
+})
+
+// 或者使用默认非深层响应式的 watchEffect
+watchEffect(() => {
+  console.log(route.path)
+})
+```
+
+### 路由守卫中传递了完整的 to 对象
+```javascript
+router.beforeEach((to, from, next) => {
+  addTab(to)
+})
+```
+这是我实际遇到的情况，在路由守卫中传递了完整的 to 对象，包括 `component` 属性，导致触发该警告。  
+正确的做法是按需传递 to 对象的属性。  
+```javascript
+router.beforeEach((to, from, next) => {
+  addTab(to.path)
+})
+```
+
+# 参考
+- [vue.js - Avoid app logic that relies on enumerating keys on a component instance - Stack Overflow](https://stackoverflow.com/questions/68100114/avoid-app-logic-that-relies-on-enumerating-keys-on-a-component-instance)
+- [Vue warn]: Avoid app logic that relies on enumerating keys on a component instance. The keys will be empty in production mode to avoid performance overhead. · Issue #2027 · vuejs/core](https://github.com/vuejs/core/issues/2027)
+- [Warning: Avoid app logic that relies on enumerating keys on a component instance. The keys will be empty in production mode to avoid performance overhead. · Issue #2856 · nuxt-modules/i18n](https://github.com/nuxt-modules/i18n/issues/2856)
