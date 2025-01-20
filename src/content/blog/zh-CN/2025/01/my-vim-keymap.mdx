@@ -3,7 +3,7 @@ title: '分享我的 Vim 键位，以及在多个编辑器中配置键位的方�
 date: '2025-1-20'
 tag: ['Vim']
 cover: ''
-description: '这篇文章分享了我自定义的 Vim 键位，我在 VSCode、NeoVim、IDEA 中使用这套键位开发了很多年。同时介绍了多编辑器同步 Vim 快捷键的方法'
+description: '这篇文章分享了我自定义的 Vim 键位，我在 VSCode、NeoVim 中使用这套键位开发了很多年。'
 ---
 
 ## 键位列表
@@ -53,10 +53,7 @@ description: '这篇文章分享了我自定义的 Vim 键位，我在 VSCode、
 | 切换到上边窗口 | `<space>sk` |  |
 | 切换到下边窗口 | `<space>sj` |  |
 
-## 多编辑器同步键位
-我常用的编辑器是 VSCode、NeoVim、IDEA系（RubyMine、WebStorm）， 针对不同场景因地制宜的使用不同的编辑器。  
-
-### VSCode 和 NeoVim
+## VSCode 和 NeoVim 配置
 VSCode 有 [VSCode-NeoVim 插件](https://marketplace.visualstudio.com/items?itemName=asvetliakov.vscode-neovim)，可以在 VSCode 中使用 NeoVim 作为后端。  
 因此 VSCode 可以直接使用 NeoVim 的配置。  
 
@@ -135,56 +132,4 @@ vim.keymap.set('n', '<space><space>h', ':HopWordBC<CR>')  -- 向左移动 20 个
 vim.keymap.set('n', '<space><space>l', ':HopWordAC<CR>')  -- 向右移动 20 个字符
 ```
 
-### IDEA 系
-IDEA 系列编辑器自带 Vim 插件，其配置文件位于 `~/.config/.ideavimrc`。  
-对应的配置文件如下：
-```vim
-" 基础设置
-set clipboard+=unnamed     " 使用系统剪贴板
-set ignorecase            " 搜索时忽略大小写
-set smartcase            " 智能大小写匹配
-set incsearch            " 增量搜索
-set hlsearch             " 高亮搜索结果
-
-" 输入模式键位配置
-imap jj <Esc>        " 使用 jj 快速退出输入模式
-
-" 命令模式键位配置
-nnoremap sa :w<CR>                " 保存文件
-nnoremap wq :wq<CR>              " 保存并关闭文件
-nnoremap qf :action QuickFix<CR>  " 显示快速修复建议
-nnoremap gd :action GotoDeclaration<CR>    " 跳转到定义
-nnoremap gr :action FindUsages<CR>         " 查看引用
-nnoremap gs :action FindInPath<CR>         " 全局搜索
-nnoremap cs :action Find<CR>               " 当前文件内搜索
-nnoremap x :q<CR>                         " 关闭当前文件
-
-" 移动相关键位配置
-nnoremap <Space>k 10k   " 向上移动 10 行
-nnoremap <Space>j 10j   " 向下移动 10 行
-nnoremap <Space>h 10h   " 向左移动 10 个字符
-nnoremap <Space>l 10l   " 向右移动 10 个字符
-
-" 快速移动键位（使用 AceJump 插件）
-nnoremap <Space><Space>j :action AceAction<CR>                " 跳转到任意位置
-nnoremap <Space><Space>k :action AceLineAction<CR>           " 跳转到行首
-nnoremap <Space><Space>h :action AceWordBackwardAction<CR>   " 向前跳转到单词
-nnoremap <Space><Space>l :action AceWordAction<CR>           " 向后跳转到单词
-
-" 分屏操作键位
-nnoremap <Space>sx :action SplitHorizontally<CR>    " 水平分屏
-nnoremap <Space>sy :action SplitVertically<CR>      " 垂直分屏
-nnoremap <Space>sc :action CloseContent<CR>         " 关闭当前分屏
-
-" 窗口切换键位
-nnoremap <Space>sh :action PreviousWindow<CR>       " 切换到左边窗口
-nnoremap <Space>sl :action NextWindow<CR>           " 切换到右边窗口
-nnoremap <Space>sk :action PreviousWindow<CR>       " 切换到上边窗口
-nnoremap <Space>sj :action NextWindow<CR>           " 切换到下边窗口
-
-" 启用一些 IdeaVim 插件
-set easymotion           " 启用 EasyMotion 插件
-set surround             " 启用 surround 插件
-set multiple-cursors     " 启用多光标支持
-set commentary           " 启用注释插件
-```
+NeoVim 相关配置涉及到 Lua 语言、Hop、LSP 插件等内容，因为这篇文章主要讲快捷键，所以不作展开。
