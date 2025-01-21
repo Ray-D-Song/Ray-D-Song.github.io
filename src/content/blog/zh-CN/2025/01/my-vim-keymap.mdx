@@ -71,9 +71,6 @@ end
 
 完整的配置文件如下：
 ```lua
--- 输入模式键位配置
-vim.keymap.set('i', 'jj', '<Esc>')  -- 使用 jj 快速退出输入模式
-
 -- 命令模式键位配置
 if vim.g.vscode then
   -- VSCode 特定配置
@@ -98,6 +95,9 @@ if vim.g.vscode then
   vim.keymap.set('n', '<space>sj', '<Cmd>call VSCodeCall("workbench.action.focusBelowGroup")<CR>')    -- 切换到下边窗口
 else
   -- NeoVim 原生配置
+
+  -- 输入模式键位配置
+  vim.keymap.set('i', 'jj', '<Esc>')  -- 使用 jj 快速退出输入模式
   vim.keymap.set('n', 'sa', ':w<CR>')        -- 保存文件
   vim.keymap.set('n', 'wq', ':wq<CR>')       -- 保存并关闭文件
   vim.keymap.set('n', 'qf', ':lua vim.lsp.buf.code_action()<CR>')      -- 显示 LSP 快速修复建议
@@ -132,4 +132,14 @@ vim.keymap.set('n', '<space><space>h', ':HopWordBC<CR>')  -- 向左移动 20 个
 vim.keymap.set('n', '<space><space>l', ':HopWordAC<CR>')  -- 向右移动 20 个字符
 ```
 
+注意，使用 jj 或 jk 映射退出编辑模式，需要在 VSCode 配置文件中添加如下配置：
+```json
+{
+  "vscode-neovim.compositeKeys": {
+    "jj": {
+      "command": "vscode-neovim.escape",
+    },
+  },
+}
+```
 NeoVim 相关配置涉及到 Lua 语言、Hop、LSP 插件等内容，因为这篇文章主要讲快捷键，所以不作展开。
