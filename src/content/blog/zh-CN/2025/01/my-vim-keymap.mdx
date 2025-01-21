@@ -126,10 +126,10 @@ vim.keymap.set('n', '<space>h', '10h')  -- 向左移动 10 个字符
 vim.keymap.set('n', '<space>l', '10l')  -- 向右移动 10 个字符
 
 -- 快速移动键位（使用 Hop）
-vim.keymap.set('n', '<space><space>k', ':HopLineStartAC<CR>')  -- 向上移动
-vim.keymap.set('n', '<space><space>j', ':HopLineStartBC<CR>')  -- 向下移动
-vim.keymap.set('n', '<space><space>h', ':HopWordBC<CR>')  -- 向左移动 20 个字符
-vim.keymap.set('n', '<space><space>l', ':HopWordAC<CR>')  -- 向右移动 20 个字符
+vim.keymap.set('n', '<space><space>k', ':HopLineStartBC<CR>')  -- 向上移动
+vim.keymap.set('n', '<space><space>j', ':HopLineStartAC<CR>')  -- 向下移动
+vim.keymap.set('n', '<space><space>h', ':HopWordBC<CR>')  -- 向左移动
+vim.keymap.set('n', '<space><space>l', ':HopWordAC<CR>')  -- 向右移动
 ```
 
 注意，使用 jj 或 jk 映射退出编辑模式，需要在 VSCode 配置文件中添加如下配置：
