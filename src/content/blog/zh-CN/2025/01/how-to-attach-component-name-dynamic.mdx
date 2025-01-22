@@ -1,0 +1,80 @@
+---
+title: '如何在 Vue 中动态绑定组件名称 (option name)'
+date: '2025-1-22'
+tag: ['Vue']
+cover: ''
+description: '这篇文章分享了为了解决 Vue 的 KeepAlive 限制（根据组件名称缓存组件），在 Vue 中动态绑定组件名称 (option name) 的方法。'
+---
+
+## 问题
+Vue 的缓存组件 `KeepAlive` 以组件的名称（也就是 `option name`）作为缓存的 key。  
+在 Vue 中定义 name 有两种方式：
+```vue
+<script setup>
+{/* setup 中定义 */}
+defineOptions({
+  name: 'MyComponent'
+})
+</script>
+
+<script>
+{/* 在 script 中定义 */}
+export default {
+  name: 'MyComponent'
+}
+</script>
+```
+但这两种方式都是静态的，无法根据不同参数，动态绑定组件名称。  
+比如，如果你想根据路由的参数来动态指定名称的话会报错：
+```vue
+<script setup>
+const route = useRoute()
+defineOptions({
+  name: route.params.name
+})
+</script>
+```
+
+```bash
+ × ModuleError: [@vue/compiler-sfc] `defineOptions()` in <script setup> cannot reference locally declared variables because it will be hoisted outside of the setup() function.
+```
+这个错误的意思是 defineOptions 在编译后会被提升到 setup 函数外，所以无法访问到 route.params.name。  
+
+<strong>那么如果多个页面使用同一个 Page 组件，他们要么都被缓存，要么都不被缓存。</strong>  
+这种行为肯定不是我们想要的。  
+
+## 解决方案
+解决方案就是给组件再包一层。  
+定义一个函数，通过函数参数返回被包装的组件。  
+
+```ts
+import type { Component } from 'vue'
+
+function createPage(name: string, component: Component) {
+  return {
+    // 组件名称
+    name,
+    data () {
+      return { component: null }
+    },
+    async created () {
+      if (component instanceof Promise) {
+        try {
+          const module = await component
+          this.component = module?.default
+        } catch (error) {
+          console.error(`can not resolve component ${name}, error:`, error)
+        }
+
+        return
+      }
+      this.component = component
+    },
+    render () {
+      return this.component ? h(this.component) : null
+    },
+  }
+}
+```
+这个函数接收两个参数：组件名称和组件本身。  
+这样，我们就可以根据不同参数，动态指定组件名称了。  

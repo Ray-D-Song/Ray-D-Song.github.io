@@ -1,0 +1,80 @@
+---
+title: 'How to attach component name dynamically in Vue'
+date: '2025-1-22'
+tag: ['Vue']
+cover: ''
+description: 'This article shares a method to dynamically attach component name (option name) in Vue to solve the KeepAlive limit (caching components based on component name).'
+---
+
+## Problem
+The cache component `KeepAlive` in Vue uses the component name (option name) as the cache key.  
+There are two ways to define name in Vue:
+```vue
+<script setup>
+{/* define name in setup */}
+defineOptions({
+  name: 'MyComponent'
+})
+</script>
+
+<script>
+{/* define name in script */}
+export default {
+  name: 'MyComponent'
+}
+</script>
+```
+But both ways are static, and cannot dynamically bind the component name.  
+For example, if you want to dynamically specify the name based on the route parameters, you will get an error:
+```vue
+<script setup>
+const route = useRoute()
+defineOptions({
+  name: route.params.name
+})
+</script>
+```
+
+```bash
+ × ModuleError: [@vue/compiler-sfc] `defineOptions()` in <script setup> cannot reference locally declared variables because it will be hoisted outside of the setup() function.
+```
+This error means that defineOptions will be hoisted outside of the setup() function, so it cannot access route.params.name.  
+
+<strong>If multiple pages use the same Page component, they will either be cached or not cached.</strong>  
+This behavior is definitely not what we want.  
+
+## Solution
+The solution is to wrap the component again.  
+Define a function that returns the wrapped component through the function parameters.  
+
+```ts
+import type { Component } from 'vue'
+
+function createPage(name: string, component: Component) {
+  return {
+    // component name
+    name,
+    data () {
+      return { component: null }
+    },
+    async created () {
+      if (component instanceof Promise) {
+        try {
+          const module = await component
+          this.component = module?.default
+        } catch (error) {
+          console.error(`can not resolve component ${name}, error:`, error)
+        }
+
+        return
+      }
+      this.component = component
+    },
+    render () {
+      return this.component ? h(this.component) : null
+    },
+  }
+}
+```
+This function receives two parameters: the component name and the component itself.  
+This way, we can dynamically specify the component name based on different parameters.  
