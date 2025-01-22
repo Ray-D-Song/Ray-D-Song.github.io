@@ -1,0 +1,130 @@
+---
+title: 'Vue 组件到底有几种写法'
+date: '2025-1-22'
+tag: ['Vue']
+cover: ''
+description: '这是一篇探讨「茴」字有几种写法的文章。不过是Vue版的 :)'
+---
+
+import Table from '@/components/Table.vue'
+
+export const columns = [
+  { title: '类型', key: 'type', width: '140px' },
+  { title: '描述', key: 'desc', width: '140px', align: 'center' },
+  { title: '平台', key: 'platform', width: '140px', align: 'center' },
+]
+
+export const data = [
+  { type: '.vue', desc: 'script option 写法', platform: 'Vue 2/3' },
+  { type: '.vue', desc: 'script setup 写法', platform: 'Vue 2/3' },
+  { type: '.vue', desc: 'setup 语法糖', platform: 'Vue 2/3' },
+  { type: '.vue', desc: '<template functional>', platform: 'Vue 2/3' },
+  { type: 'JSX', desc: 'defineComponent options 写法', platform: 'Vue 2/3' },
+  { type: 'JSX', desc: 'defineComponent setup 写法', platform: 'Vue 3' },
+  { type: 'JSX', desc: 'defineComponent 函数签名写法', platform: 'Vue 3' },
+  { type: 'Pure JS', desc: 'h 渲染函数', platform: 'Vue 2/3' },
+  { type: 'Pure JS', desc: 'template 字符串', platform: 'Vue 2/3' },
+  { type: 'Class Component', desc: '类组件', platform: 'Vue 2/3' },
+  { type: '其他', desc: 'Vine 组件', platform: 'Vue 3' },
+  { type: '其他', desc: 'Vue Macro', platform: 'Vue 2/3' },
+]
+
+## 省流
+<Table columns={columns} data={data} showHeader={false} />
+
+注：
+- lang="xxx" 不作为区分标准。
+- 类似于 defineComponent 里面调用 h 不作为区分标准，而是直接归于 defineComponent 写法。
+
+## .vue 文件
+
+### script option 写法
+Vue 从引入单文件组件开始的经典写法，如下：
+
+```vue
+<template>
+  <button @click="handleClick">{{ buttonText }}</button>
+</template>
+
+<script>
+export default {
+  name: 'MyButton',
+  props: {
+    size: {
+      type: String,
+      default: '30px',
+    },
+  },
+  data() {
+    return {
+      loading: false,
+    }
+  },
+  methods: {
+    handleClick() {
+      this.loading = true
+    },
+  },
+  computed: {
+    buttonText() {
+      return this.loading ? 'Loading...' : 'Click me'
+    },
+  },
+  watch: {
+    loading(newVal) {
+      console.log('loading', newVal)
+    },
+  },
+  mounted() {
+    console.log('MyButton mounted')
+  },
+}
+</script>
+```
+
+可以看到 script 中定义的实际上是一个包含了固定选项的 JS 对象，因此这种写法被称为 **options API**（选项 API）。  
+这种写法是 Vue2 的主要写法，访问 data 中的响应式数据需要通过 this，因此存在一些问题：
+- this 指向问题 （JS本身的硬伤）
+- 逻辑复用困难
+
+关于第二点，Vue2 提供了 mixin 来解决这个问题。  
+你可以将一些通用的逻辑抽离到一个 Object 中，然后在需要的地方引入。
+```js
+export default {
+  mixins: [AuthMixin],
+}
+```
+可惜 mixin 并不是一个完美的解决方案，最明显的问题就是**命名冲突**和**数据来源不明确**。  
+比如你的两个 mixin 都定义了名为 reset 的 method，那么就会产生冲突。  
+
+### script setup 写法
+为了解决 options API 的问题，Vue3 引入了 setup 语法。  
+写法如下：
+```vue
+<script>
+export default {
+  setup() {
+    const loading = ref(false)
+    const buttonText = computed(() => {
+      return loading.value ? 'Loading...' : 'Click me'
+    })
+    const handleClick = () => {
+      loading.value = true
+    }
+    onMounted(() => {
+      console.log('MyButton mounted')
+    })
+    return {
+      loading,
+      buttonText,
+    }
+  },
+}
+</script>
+
+<template>
+  <button @click="handleClick">{{ buttonText }}</button>
+</template>
+```
+
+<s>可以看到，Vue3 最大的变化就是 `script` 块挪到 `template` 上面了。</s>  
