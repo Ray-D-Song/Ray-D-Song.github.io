@@ -1,0 +1,77 @@
+---
+title: 'How to connect to a Linux server or development board without a monitor'
+date: '2025-1-30'
+tag: ['SBC', 'Pi', 'Linux', 'Raspberry Pi']
+cover: ''
+description: 'I recently bought a Orange Pi Zero 3, but I don\'t have a mini HDMI cable to connect to a monitor. So I need to enable the ssh function after burning the system.'
+---
+
+## System burning
+Recently, I bought an Orange Pi Zero 3, but I don't have a mini HDMI cable to connect to a monitor. So I need to enable the ssh function after burning the system.  
+
+First, burn the system normally. [balenaEtcher](https://etcher.balena.io/) and [Raspberry Pi Imager](https://www.raspberrypi.com/software/) can burn custom images.  
+I choose Raspberry Pi Imager, because it is lighter than balenaEtcher.  
+
+## macOS's unique problem
+After burning successfully, if you are using macOS, you will be prompted with "This computer cannot read the disk you connected." This is because macOS does not natively support the ext4 file format. Click "Ignore" first.  
+Although you may be surprised, this problem has no good solution on Mac.  
+The available methods include:
+- Run Linux on virtual machines like PD, VMWare, UTM, etc.
+- Use Fuse to extend macOS to support ext4. Currently, there is only one paid software solution, extFS for Mac.
+- You have an extra server (not macOS system), expose the ext4 storage as samba.
+
+These three solutions are not very elegant, I recommend the first one, directly use the open source and free UTM virtual machine to run Linux.
+
+## Configure automatic connection to WiFi
+First, configure WiFi connection, edit the `/etc/wpa_supplicant/wpa_supplicant.conf` file:  
+```bash
+ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+update_config=1
+country=CN
+
+network={
+    ssid="your WiFi name"
+    psk="your WiFi password"
+    key_mgmt=WPA-PSK
+}
+```
+Next, ensure that the WiFi service starts automatically, edit the `/etc/network/interfaces` file:  
+```bash
+auto lo
+iface lo inet loopback
+
+auto wlan0
+allow-hotplug wlan0
+iface wlan0 inet dhcp
+    wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
+```
+
+> 1. Ensure that the WiFi name and password in the above configuration are replaced with actual values  
+> 2. The WiFi interface name may not be wlan0, some devices may be wlan1 or other names, you need to confirm the actual interface name  
+> 3. country=CN is the country code, this affects the available WiFi channels  
+
+## Configure ssh
+Most Linux distributions come with ssh services installed by default.  
+First, ensure that the SSH service starts automatically, check and edit the `/etc/systemd/system/multi-user.target.wants/` directory for a soft link to ssh.service. If not, you can manually create:  
+```bash
+# Find this directory in the SD card, create a soft link
+ln -s /lib/systemd/system/ssh.service /etc/systemd/system/multi-user.target.wants/ssh.service
+```
+Check the `/etc/ssh/sshd_config` file, ensure the following settings:
+```bash
+Port 22
+PermitRootLogin yes
+PasswordAuthentication yes
+```
+You can also create an empty file named `ssh` in the root directory of the SD card, in many embedded Linux systems, this represents starting the ssh service on boot.  
+```bash
+touch ssh
+```
+
+## ssh connection
+Next, you can get the internal ip of the development board through the router management interface, command line tool (arp -a), Angry Ip Scanner, etc., and use the ssh command to connect.  
+```bash
+ssh root@xxx.xxx.xxx.xxx
+```
+The password for the root user usually has a default value, such as the default password for armbian is `1234`, the default password for Orange Pi is `orangepi`, and the default user for Raspberry Pi is `pi` with the password `raspberry`.  
+You can refer to the official documentation of the system for details.

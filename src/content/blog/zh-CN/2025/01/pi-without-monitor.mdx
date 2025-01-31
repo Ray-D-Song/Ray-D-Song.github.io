@@ -1,0 +1,77 @@
+---
+title: '没有显示器如何初始化并连接 Linux 服务器和开发板'
+date: '2025-1-30'
+tag: ['SBC', 'Pi', 'Linux', '树莓派']
+cover: ''
+description: '最近入手了一个香橙派zero3，但手头没有可以连接显示器的mini HDMI线材，所以需要在烧录系统后开启 ssh 功能'
+---
+
+## 系统烧录
+最近入手了一个香橙派zero3，但手头没有可以连接显示器的mini HDMI线材，所以需要在烧录系统后开启 ssh 功能并直接写入客户端设备的密钥。  
+
+首先正常烧录系统，[balenaEtcher](https://etcher.balena.io/) 和[Raspberry Pi Imager](https://www.raspberrypi.com/software/)都可以烧录自定义镜像。  
+我选择Raspberry Pi Imager，因为他比balenaEtcher 更轻量。  
+
+## macOS 独有的问题
+烧录成功后，如果你是 macOS 系统，会提示「此电脑不能读取你连接的磁盘。」，这是因为 macOS 原生不支持 ext4 文件格式，先点击忽略。  
+虽然你可能会惊讶，但这个问题在 Mac 上一直没有好的解决方案。  
+可用的方法包括：
+- PD、VMWare、UTM 等虚拟机运行 Linux
+- 使用 Fuse 拓展让 macOS 支持 ext4，目前只有 extFS for Mac 这样一个付费的软件方案
+- 你有一台额外的服务器（非macOS系统），将ext4的存储器作为samba暴露
+
+这三种方案都不是很优雅，我推荐第一个，直接使用开源且免费的 UTM 虚拟机跑 Linux。
+
+## 配置开机自动连接 WiFi
+首先配置WiFi连接，需要编辑`/etc/wpa_supplicant/wpa_supplicant.conf`文件：  
+```bash
+ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+update_config=1
+country=CN
+
+network={
+    ssid="你的WiFi名称"
+    psk="你的WiFi密码"
+    key_mgmt=WPA-PSK
+}
+```
+接下来确保WiFi服务开机自启，编辑 /etc/network/interfaces 文件：  
+```bash
+auto lo
+iface lo inet loopback
+
+auto wlan0
+allow-hotplug wlan0
+iface wlan0 inet dhcp
+    wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
+```
+
+> 1. 确保将上面配置中的 你的WiFi名称 和 你的WiFi密码 替换为实际的值  
+> 2. WiFi接口名可能不是 wlan0，某些设备可能是 wlan1 或其他名称，你需要确认实际的接口名  
+> 3. country=CN 是设置国家代码，这会影响到可用的WiFi频道  
+
+## 配置 ssh
+大多数 Linux 发行版默认已经安装了 ssh 服务。  
+首先，确保SSH服务开机自启动，检查并编辑`/etc/systemd/system/multi-user.target.wants/`目录下是否有 ssh.service 的软链接。如果没有，你可以手动创建：  
+```bash
+# 在SD卡中找到这个目录，创建软链接
+ln -s /lib/systemd/system/ssh.service /etc/systemd/system/multi-user.target.wants/ssh.service
+```
+检查`/etc/ssh/sshd_config`文件，确保以下设置:
+```bash
+Port 22
+PermitRootLogin yes
+PasswordAuthentication yes
+```
+你还可以在SD卡的根目录创建一个名为`ssh`的空文件，在很多嵌入式Linux系统中这代表开机启动ssh服务。  
+```bash
+touch ssh
+```
+
+## ssh连接
+接下来你可以通过路由器管理界面、命令行工具（arp -a)、Angry Ip Scanner 等方法获取开发板的内网ip，使用ssh命令连接。  
+```bash
+ssh root@xxx.xxx.xxx.xxx
+```
+root 用户的密码一般会有一个默认值，比如armbian的默认密码是`1234`，香橙派是`orangepi`，树莓派的默认用户是pi密码raspberry。  
+具体可以参照系统的官方文档。
