@@ -1,0 +1,184 @@
+---
+title: "用 Mitosis 同时构建 React 和 Vue 组件"
+pubDatetime: 2024-08-09T00:00:00.000Z
+ogImage: ""
+tags:
+  - "frontend"
+  - "React"
+  - "Vue"
+description: "上次写了个[UnoCSS icon 选择器](/zh-cn/blog/unocss-icon-viewer), 希望写个库可以同时在 React 和 Vue 中使用."
+---
+
+上次写了个[UnoCSS icon 选择器](/zh-cn/blog/unocss-icon-viewer), 希望写个库可以同时在 React 和 Vue 中使用.  
+
+首先想到的是 Web Component. 但缺点是在核心逻辑之外需要针对 Vue 和 React 分别编写一套适配代码.  
+对于一些比较小的需求, 写适配代码的成本可能比人工适配还要高.  
+
+然后我就发现了`Mitosis`这邪门东西.  
+Mitosis 的中文是`有丝分裂`, 顾名思义, 它可以将组件编译成多个框架的代码, 包括 React, Vue, Qwik, Solid, Angular, Svelte.  
+
+实现原理就是一个编译器, 将 Mitosis 的文件编译成 Vue 和 React 的有限子集. 和 UnoCSS 一样是个前端编译期的探索.
+
+## 创建项目
+```bash
+npm create @builder.io/mitosis@latest
+```
+输入命令会有一些可配置的选项, 在选择输出目标时, 只有React, Svelte, Qwik. 但支持的框架远不止于此.  
+修改`library/mitosis.config.cjs`的`targets`字段, 增加 Vue 支持:  
+```js
+"targets": [
+  "react",
+  "vue",
+],
+```
+项目自带`todo-app.lite.tsx`和`autocomplete.lite.tsx`两个例子, 试运行一下.  
+```bash
+cd library
+npm run build
+
+# Mitosis: react: generated 2 components, 1 regular files.
+# Mitosis: vue: generated 2 components, 1 regular files.
+# Mitosis: generation completed.
+```
+在`/library/package`会生成 React 和 Vue 的组件.
+
+## 编写组件  
+Mitosis 的组件后缀是`.lite.tsx`, 和 React 近似的 jsx 语法, 但有一套自己的 API 和限制.  
+```tsx
+import { useState } from "@builder.io/mitosis";
+
+export default function MyComponent(props) {
+  const [name, setName] = useState("Steve");
+
+  return (
+    <div>
+      <input
+        css={{
+          color: "red",
+        }}
+        value={name}
+        onChange={(event) => setName(event.target.value)}
+      />
+      Hello! I can run natively in React, Vue, Svelte, Qwik, and many more frameworks!
+    </div>
+  );
+}
+```
+例如由于编译器限制, 组件只支持上面这种 `export default function` 的写法, 不能用 const 定义箭头函数再导出.  
+
+### 状态管理
+现代前端框架最重要的就是`state`.  
+
+#### useStore
+mitosis组件状态维护通过`useStore`钩子, 返回值接收必须叫`state`(也是编译器限制).   
+```tsx
+export default function MyComponent() {
+  // ...
+  const state = useStore({
+    iconList: [],
+  })
+}
+```
+React 组件中, useStore 会被转换成一个简单的`useState`定义.  
+
+store 的参数塞啥都可以, 但如果你想要的值需要经过表达式计算得到, 就得写个`getter`:  
+```tsx
+const state = useStore({
+  iconList: [],
+  get outlineIcon() {
+    return this.iconList.filter(icon => icon.endsWith('-outline'))
+  },
+})
+```
+`getter`会转换成一个独立的方法:  
+```tsx
+const [iconList, setIconList] = useState(() => []);
+
+function outlineIcon() {
+  return iconList.filter((icon) => icon.endsWith("-outline"));
+}
+```
+
+#### useState
+mitosis 也支持useState api, 使用方式和 React 一样:  
+```tsx
+const [count, setCount] = useState(0)
+```
+在 Vue 中, useState 和 useStore 都会被编译成 options api 中的`data`选项.  
+
+> 顺带一提, 现在 mitosis 还不支持 Vue 3 的`setup`写法  
+
+```ts
+export default defineComponent({
+  data() {
+    return { count: 0 };
+  },
+})
+```
+
+### 样式
+Mitosis 通过标签上的`css`属性来编写`camelCase`的样式, 你甚至可以像这样写 css query.  
+```tsx
+<div
+  css={{
+    marginTop: '10px',
+    '@media (max-width: 500px)': {
+      marginTop: '0px',
+    },
+  }}
+/>
+```
+而且编译后的结果还做了样式隔离. (React 本体到现在也没支持😂)
+
+当然你也可以选择使用`class`属性(不需要 React 中的 className), 不过这样就没法做样式隔离了.
+
+## 流程控制
+为了屏蔽不同框架的差异, Mitosis 通过一标签实现了自己的流程控制, 以下是对照表, 详细可以看[文档](https://mitosis.builder.io/docs/components/)  
+| Mitosis | React | Vue |
+| --- | --- | --- |
+| `<Show>` | `if` | `v-if` |
+| `<For>` | `map` | `v-for` |
+
+## 集成其他库
+因为 Mitosis 并不是一个前端框架, 而是一个编译器, 所以它没有 webpack 或者 vite 集成.  
+比如, 想要使用 UnoCSS, 只能使用`uno cli`, 监听文件变化然后编译出 css 文件, 再进行引入.    
+
+当然还有个更好的办法, 本质上 Mitosis 只是一个转化管道, 那我们只要设置`产物的环境`就行了, Mitosis 完成转换后，由其他工具接管, 进行打包.  
+最终我们编写组件的流程就变成了:  
+1. 编写 Mitosis 组件
+2. 使用`npm run build`编译, 输出到 vite 环境中
+3. 使用`vite`之类的的打包器去打包最终的产物, npm 发布
+
+你可以以这个项目为示例[unocss-icon-viewer](https://github.com/Ray-D-Song/unocss-icon-viewer).  
+
+有一些关键点你可能需要注意, 比如mitosis的 tsconfig 将 jsxImportSource 设置为`@builder.io/mitosis`.  
+这会导致你 build react 或者 solid 之类的库时, jsx 类型报错.  
+解决方案是在 Vite 中配置 esbuild 和 ets 插件, 动态修改 compilerOptions.  
+```ts
+export default defineConfig({
+  plugins: [
+    // ...
+    dts({
+      outDir: 'dist',
+      include: 'packages/*/src/**',
+      compilerOptions: {
+        jsxImportSource: 'react',
+      }
+    }),
+  ],
+  // ...
+  esbuild: {
+    tsconfigRaw: {
+      compilerOptions: {
+        jsxImportSource: 'react',
+      }
+    }
+  }
+})
+```
+
+## 缺陷
+Mitosis 算是不错的解决方案, 但也有缺陷, 比如:
+* 无法控制产物质量, 生成的代码并不是最优解  
+* 奇奇怪怪的规定, 比如 props 不可以解构, 只能用`props.xxx`, 换言之就是编译器太弱了  
+* 编写源码 => 编译到打包器环境 => 运行测试环境, 这里面至少涉及 3 个 watch 和环境, 太过复杂  
