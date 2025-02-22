@@ -17,7 +17,7 @@ tag: ['frp', 'self-host', 'homelab']
 ## 网络测试
 为了保证服务稳定，首先要测试本地服务器和云服务器（后续简称为`本地`和`云`）之间的网络情况。  
 这里使用`mtr`作为测试工具，MTR（My Traceroute）是一款网络诊断工具，结合了 traceroute 和 ping 命令的功能。它用于分析主机到目标地址之间的网络路径和延迟情况。  
-关于mtr更详细的内容，可以查看[Cloudflare的这篇文章](https://www.cloudflare.com/zh-cn/learning/network-layer/what-is-mtr/)。  
+关于mtr更详细的内容，可以查看[Cloudflare的这篇文章](https://www.cloudflare.com/learning/network-layer/what-is-mtr/)。  
 
 使用`mtr -c 10 -r 192.0.2.1`命令进行测试，其中`-c 10`命令表示发送10个探测包，-r表示生成测试报告，执行结果如下：
 ```bash

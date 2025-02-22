@@ -335,7 +335,7 @@ props: {
   }
 }
 ```
-如果你感兴趣的话, 可以阅读我这篇文章: [Vue 宏编译: 以 defineProps 为例](https://ray-d-song.com/zh-cn/blog/vue-compiler-macro-defineprops/)
+如果你感兴趣的话, 可以阅读我这篇文章: [Vue 宏编译: 以 defineProps 为例](https://ray-d-song.com/blog/vue-compiler-macro-defineprops/)
 
 #### 打包器插件
 WebPack 时代就有丰富的插件生态, 但TypeScript 还没有现在这么流行, 可以给编译器用的的元数据很少, 因此各种基于 AST 的插件很难实现.  

@@ -18,7 +18,7 @@ HTTPS 约定了使用 443 端口, 通过 SSL/TLS 协议进行通信.
 
 ## 生成证书
 配置 HTTPS 首先需要生成证书, 证书由 CA 机构颁发, 用来证明你的网站是安全的.  
-https://www.cloudflare.com/zh-cn/application-services/products/ssl/
+https://www.cloudflare.com/application-services/products/ssl/
 
 如果你的域名在 Cloudflare 上, 可以直接在 Cloudflare 上申请免费证书.  
 

@@ -1,29 +1,18 @@
 ---
-import { getCollection } from 'astro:content';
-import Layout from '../layouts/Layout.astro';
-import Card from '@/components/Card.astro';
+import { getCollection } from "astro:content";
+import Layout from "../layouts/Layout.astro";
+import Post from "@/components/Post.astro";
 
-const blogs = (await getCollection('blog'))
-  .filter(blog => blog.slug.startsWith('zh-cn'))
-  .filter(blog => blog.data.card)
-  .sort((a, b) => (new Date(b.data.date)).getTime() - (new Date(a.data.date)).getTime())
+const blogs = (await getCollection("blog"))
+  .filter((blog) => blog.data.card)
+  .sort(
+    (a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime(),
+  );
 ---
 
-<Layout title="Ray-D-Song's Blog: Programming & Tech" lang="zh-CN" desc="Explore Ray-D-Song's Blog for insights on programming">
-	<main class="flex flex-col justify-center items-center gap-8">
-    {
-      blogs
-      .map(blog => (
-        <Card blog={blog} />
-      ))
-    }
-	</main>
+<Layout>
+  <main>
+    <h2>Recent Posts</h2>
+    {blogs.map((blog) => <Post blog={blog} />)}
+  </main>
 </Layout>
-
-<script>
-const langCache = window.localStorage.getItem('language')
-const userLang = langCache || navigator.language
-if(userLang !== 'zh-CN') {
-  window.location.href = '/en'
-}
-</script>

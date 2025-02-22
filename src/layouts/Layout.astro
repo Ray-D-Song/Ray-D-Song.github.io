@@ -1,251 +1,126 @@
 ---
-import Search from '@/components/Search.vue';
-
 interface Props {
-	title: string;
-  lang: string;
-  desc: string;
+  title?: string;
+  description?: string;
 }
-
-const { title, lang, desc} = Astro.props;
 ---
 
 <!doctype html>
-<html lang={lang} class="dark">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="description" content={desc} />
-		<meta name="viewport" content="width=device-width" />
-    <meta name="keywords" content="programming, vue, vite, javascript, typescript, nodejs, web development, ray-d-song" />
+<html lang="zh-CN" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="description"
+      content={Astro.props.description || "我正在和日常战斗"}
+    />
+    <meta name="viewport" content="width=device-width" />
+    <meta
+      name="keywords"
+      content="programming, vue, vite, javascript, typescript, nodejs, web development, ray-d-song"
+    />
     <link rel="sitemap" href="/sitemap-index.xml" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="generator" content={Astro.generator} />
-		<title>{title}</title>
-    <script>
-      const themeCache = window.localStorage.getItem('theme')
-      if(themeCache === 'dark') {
-        document.documentElement.classList.value = 'dark'
-      } else {
-        document.documentElement.classList.value = 'light'
-      }
-      document.body.classList.remove('!hidden')
-    </script>
-    <script is:inline src="https://cdn.jsdelivr.net/npm/twikoo@1.6.39/dist/twikoo.min.js" integrity="sha384-W0w7IGKejOSolaFiI1yMf6mq2m+35Jc4MKiRAljmbCezcYLoo2c3W4xlrmqqwbqC" crossorigin="anonymous"></script>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8780705783524802"
-     crossorigin="anonymous"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-    {import.meta.env.PROD && <link href="/pagefind/pagefind-ui.css" rel="stylesheet" />}
-	</head>
-	<body class="!hidden dark:bg-dark bg-light dark:text-dark text-light relative flex flex-col min-h-screen w-full font-sans">
-    <header class="w-full backdrop-blur-xl fixed left-0 top-0 flex justify-between z-20">
-      <div
-        class="i-mdi-dinosaur-pixel w-10 h-10 mx-2 my-1 hover:cursor-pointer hover:opacity-80"
-        onclick="window.location.href = '/'"
-      />
-      <div class="flex">
-        <!-- <Search client:load /> -->
-        <div class="relative w-6 h-6 m-2">
-          <div 
-            id="lang-icon"
-            class="i-mdi-language w-6 h-6 absolute hover:cursor-pointer hover:opacity-80"
-          />
-          <div
-            id="icon-container"
-            class="absolute z-30 top-0 right-0 shadow-xl border bg-light dark:bg-dark border-gray-4 w-150px text-1.2rem flex flex-col gap-1 items-baseline mt-7 p-2 rounded-lg"
-            style="display: none;"
-          >
-            <button data-lang="zh-CN" class="lang-btn hover:bg-#FAF4ED dark:hover:bg-[#191B26] w-full">中文</button>
-            <button data-lang="en" class="lang-btn hover:bg-#FAF4ED dark:hover:bg-[#191B26] w-full">English</button>
-          </div>
-        </div>
-        <div 
-          class="action-btn i-mdi-apps w-6 h-6 my-2 mx-4 lg:mx-2 hover:cursor-pointer hover:opacity-80"
-        />
-        <div 
-          class="action-btn i-mdi-twitter w-6 h-6 my-2 mx-4 lg:mx-2 hover:cursor-pointer hover:opacity-80"
-        />
-        <div
-          class="action-btn i-mdi-github w-6 h-6 my-2 mx-4 lg:mx-2 hover:cursor-pointer hover:opacity-80"
-        />
-        <div
-          class="action-btn i-mdi-rss w-6 h-6 my-2 mx-4 lg:mx-2 hover:cursor-pointer hover:opacity-80"
-        />
-        <div
-          class="action-btn i-mdi-theme-light-dark w-6 h-6 my-2 mx-4 lg:mx-2 hover:cursor-pointer hover:opacity-80"
-        />
-      </div>
-      <!-- <div class="sm:visible">
-        <div class="i-mdi-hamburger-menu w-10 h-10 mr-1 mt-1 rotate-90"/>
-      </div> -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{Astro.props.title || "Ray-D-Song's Blog"}</title>
+    <script
+      async
+      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8780705783524802"
+      crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="https://fonts.xz.style/serve/inter.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@exampledev/new.css@1.1.2/new.min.css"
+    />
+  </head>
+  <body>
+    <header>
+      <h1>Ray-D-Song's Blog</h1>
+      <nav>
+        <a href="/">Home</a>
+        /
+        <a href="/about">About</a>
+        /
+        <a href="https://github.com/ray-d-song">GitHub</a>
+      </nav>
     </header>
-    <div class="py-20 flex-grow-1">
-      <slot />
-    </div>
-    <footer class="absolute bottom-0 text-center w-full font-450">
+    <slot />
+    <footer class="text-center text-sm">
       &copy; 2025 Ray-D-Song. All Rights Reserved
     </footer>
-	</body>
+  </body>
 </html>
 
-<script>
-const actionBtns = document.querySelectorAll('.action-btn')
-const currentLang = window.localStorage.getItem('language') || 'zh-CN'
-actionBtns.forEach((btn) => {
-  btn.addEventListener('click', () => {
-    switch (btn.classList[1]) {
-      case 'i-mdi-apps':
-        window.location.href = `/${currentLang.toLowerCase()}/archives`
-      break
-      case 'i-mdi-twitter':
-        window.open('https://x.com/RaySong19184922')
-      break
-      case 'i-mdi-github':
-        window.open('https://github.com/ray-d-song')
-      break
-      case 'i-mdi-rss':
-        window.open(`https://ray-d-song.com/feed.xml?lang=${currentLang.toLowerCase()}`)
-      break
-      case 'i-mdi-theme-light-dark':
-        toggleTheme()
-    }
-  })
-})
-
-function toggleTheme() {
-  const theme = document.documentElement.classList[0]
-  if (theme === 'dark') {
-    document.documentElement.classList.value = 'light'
-    window.localStorage.setItem('theme', 'light')
-  } else {
-    document.documentElement.classList.value = 'dark'
-    window.localStorage.setItem('theme', 'dark')
-  }
-}
-</script>
-
-<script is:inline>
-const iconContainer = document.querySelector('#icon-container')
-document.querySelector('#lang-icon')?.addEventListener('click', () => {
-  if(iconContainer)
-    iconContainer.style.display = iconContainer.style.display === 'none' ? 'block' : 'none'
-})
-
-const langCache = window.localStorage.getItem('language')
-const pathname = window.location.pathname
-document.querySelectorAll('.lang-btn').forEach((btn) => {
-  btn.addEventListener('click', () => {
-    const lang = btn.dataset.lang
-    if(langCache === lang) return
-
-    window.localStorage.setItem('language', lang)
-    if(pathname === '/' && lang === 'en') {
-      window.location.href = '/en'
-    }
-    if(pathname === '/en') {
-      window.location.href = '/'
-    }
-    if(pathname === '/zh-cn') {
-      window.location.href = '/en'
-    }
-
-    const newPath =  `/${lang.toLowerCase()}/${pathname.split('/').slice(2).join('/')}`
-    window.location.href = newPath
-  })
-})
-</script>
-
 <style is:global>
-.astro-code {
-  border-radius: 6px;
-  font-size: 0.9rem;
-}
-.astro-code code {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-html.light .astro-code {
-  background-color: #f6f8fa;
-  border: 1px solid #d0d7de;
-}
-html.dark .astro-code,
-html.dark .astro-code span {
-	color: var(--shiki-dark) !important;
-	background-color: var(--shiki-dark-bg) !important;
-	font-style: var(--shiki-dark-font-style) !important;
-	font-weight: var(--shiki-dark-font-weight) !important;
-	text-decoration: var(--shiki-dark-text-decoration) !important;
-}
-html.light .line.highlighted {
-  background-color: #c8c8c8 !important;
-}
-html.dark .line.highlighted {
-  background-color: #3B4252 !important;
-}
-html.dark .line.highlighted span {
-  background-color: #3B4252 !important;
-}
-.line.highlighted {
-  width: 100% !important;
-  display: inline-block !important;
-}
+  .astro-code {
+    border-radius: 6px;
+    font-size: 0.9rem;
+  }
+  .astro-code code {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  .line.highlighted {
+    width: 100% !important;
+    display: inline-block !important;
+    background-color: #555 !important;
+  }
 
-p > code {
-  white-space: unset !important;
-}
+  p > code {
+    white-space: unset !important;
+  }
 
-.copy {
-  display: flex;
-  justify-content: space-between;
-  border-bottom: 1px solid currentColor;
-  margin-top: -10px;
-  margin-bottom: 10px;
-  padding-bottom: 5px;
-}
+  .copy {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid currentColor;
+    margin-top: -10px;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+  }
 
-.copy-icon {
-  display: inline-block;
-  width: 18px;
-  height: 18px;
-  --svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M19 21H8V7h11m0-2H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2m-3-4H4a2 2 0 0 0-2 2v14h2V3h12z'/%3E%3C/svg%3E");
-  background-color: currentColor;
-  -webkit-mask-image: var(--svg);
-  mask-image: var(--svg);
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-size: 100% 100%;
-  mask-size: 100% 100%;
-  cursor: pointer;
-}
+  .copy-icon {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    --svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M19 21H8V7h11m0-2H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2m-3-4H4a2 2 0 0 0-2 2v14h2V3h12z'/%3E%3C/svg%3E");
+    background-color: currentColor;
+    -webkit-mask-image: var(--svg);
+    mask-image: var(--svg);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    cursor: pointer;
+  }
 
-.check-icon {
-  display: inline-block;
-  width: 18px;
-  height: 18px;
-  --svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M21 7L9 19l-5.5-5.5l1.41-1.41L9 16.17L19.59 5.59z'/%3E%3C/svg%3E");
-  background-color: currentColor;
-  -webkit-mask-image: var(--svg);
-  mask-image: var(--svg);
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-size: 100% 100%;
-  mask-size: 100% 100%;
-  cursor: pointer;
-}
+  .check-icon {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    --svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M21 7L9 19l-5.5-5.5l1.41-1.41L9 16.17L19.59 5.59z'/%3E%3C/svg%3E");
+    background-color: currentColor;
+    -webkit-mask-image: var(--svg);
+    mask-image: var(--svg);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    cursor: pointer;
+  }
 
-.line-num {
-  margin-right: 18px;
-}
+  .line-num {
+    margin-right: 18px;
+  }
 
-.tk-input textarea {
-  min-height: 100px;
-}
-
-.astro-code {
-  font-family: 'JetBrains Mono', monospace !important;
-}
+  .astro-code {
+    font-family: "JetBrains Mono", monospace !important;
+  }
 </style>

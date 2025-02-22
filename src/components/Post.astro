@@ -1,0 +1,38 @@
+---
+import { formatDate } from "@/utils/date";
+interface Props {
+  blog: {
+    slug: string;
+    data: {
+      title: string;
+      date: string;
+      tag: string[];
+    };
+    body: string;
+  };
+}
+
+const { blog } = Astro.props;
+---
+
+<div class="my-10">
+  <a href={`/blog/${blog.slug}`} class="no-underline text-xl">
+    {blog.data.title}
+  </a>
+
+  <div class="my-2 text-sm! flex lg:items-center lg:flex-row flex-col">
+    <div class="flex items-center">
+      <div class="i-fe-calendar inline-block min-w-4 min-h-4 mr-1"></div>
+      <time class="w-40">{formatDate(blog.data.date, false)}</time>
+    </div>
+    <div class="flex items-center">
+      {
+        blog.data.tag.map((item) => (
+          <a href={`/tag/${item}`} class="mr-2 no-underline">
+            #{item}
+          </a>
+        ))
+      }
+    </div>
+  </div>
+</div>

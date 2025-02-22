@@ -1,4 +1,4 @@
-import { defineConfig, presetIcons, presetUno, presetTypography } from 'unocss'
+import { defineConfig, presetIcons, presetUno } from 'unocss'
 import { icons } from '@iconify-json/fe/index.js'
 
 export default defineConfig({
@@ -13,31 +13,13 @@ export default defineConfig({
       'fade-in': 'fade-in 2s ease-in-out',
     },
     fontFamily: {
-      sans: ['Noto Sans SC', 'sans-serif'],
+      sans: ['Inter', 'sans-serif'],
       mono: ['JetBrains Mono', 'monospace'],
     }
   },
   presets: [
-    presetUno(),
     presetIcons(),
-    presetTypography(),
+    presetUno()
   ],
   safelist: Object.keys(icons.icons).map(icon => `i-fe-${icon}`).slice(0, 30),
-  rules: [
-    ['text-light', {
-      color: '#24292f', // 更深的文字颜色，提高对比度
-    }],
-    ['text-dark', {
-      color: '#D0D0D0',
-    }],
-    ['bg-light', {
-      background: '#ffffff', // 纯白背景
-    }],
-    ['bg-dark', {
-      background: '#1B1B1F',
-    }],
-    ['bg-card-light', {
-      background: '#f6f8fa', // 略微灰色的卡片背景
-    }],
-  ],
 })

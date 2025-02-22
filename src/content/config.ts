@@ -8,9 +8,10 @@ const blogs = defineCollection({
     cover: z.string(),
     tag: z.array(z.string()),
     remark: z.optional(z.string()),
-    card: z.optional(z.boolean()).default(true)
-  })
-})
+    card: z.optional(z.boolean()).default(true),
+    description: z.optional(z.string()),
+  }),
+});
 
 export const collections = {
   'blog': blogs,
