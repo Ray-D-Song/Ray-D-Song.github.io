@@ -1,0 +1,309 @@
+---
+title: '使用 Valibot 进行类型检查和类型守卫'
+date: '2025-3-20'
+tag: ['TypeScript']
+cover: ''
+description: '在遇到需要大量判断 JS 运行时类型的场景时，我们可以使用 Valibot 进行类型检查和类型守卫，提高运行时的类型安全性，并减少 type guard 代码量'
+---
+
+## 什么是 Valibot
+
+Valibot 是一个基于 TypeScript 的类型检查库，它可以帮助我们在运行时进行类型检查。  
+
+当我们讨论 TS 类型安全时，这种"安全"其实只存在于`编译时`，而`运行时`的类型安全需要我们自己来保证。  
+也就是说，即便我们定义了大量的`interface`、`type`，在运行时，我们依旧要编写`typeof`、`instanceof`、`in`等判断类型的代码。  
+
+Valibot 可以帮助我们减少这部分代码量，并提供更安全的类型检查。
+
+> 另一个更流行的校验库是 Zod，二者的 API 非常相似，Valibot 作为后发者做了一些优化，比如体积更小，且支持 tree-shaking。
+
+## 使用
+
+安装
+```bash
+npm install valibot
+# 或者
+yarn add valibot
+# 或者
+pnpm add valibot
+```
+> 你可以在[这里](https://valibot.dev/playground)在线体验 Valibot 的类型检查。
+
+Valibot 的核心是`模式定义`，所谓模式，可以理解你的变量"应该是什么样"。  
+
+比如，我们需要一个`user`对象，它应该有`name`、`age`、`pwd`三个属性。  
+`name`和`pwd`是字符串，`age`是数字。  
+密码长度需要大于 6 位。  
+
+那么 User 模式的定义如下：
+```ts
+import * as v from 'valibot'
+
+const UserSchema = v.object({
+  name: v.string(),
+  age: v.number(),
+  pwd: v.pipe(v.string(), v.minLength(6)),
+})
+```
+然后我们就可以使用这个模式来检查我们的数据了。  
+```ts
+const result = v.safeParse(UserSchema, {
+  name: 'Ray',
+  age: 24,
+  pwd: '1234',
+})
+
+console.log(result)
+```
+注意，我的pwd字段只写了4位，但在schema中我们定义了最少6位，所以会报错。  
+此时第7行的console.log会输出如下的报错信息：
+```txt
+[log]: {
+  typed: true,
+  success: false,
+  output: {
+    name: "Ray",
+    age: 24,
+    pwd: "1234"
+  },
+  issues: [
+    {
+      kind: "validation",
+      type: "min_length",
+      input: "1234",
+      expected: ">=6",
+      received: "4",
+      message: "Invalid length: Expected >=6 but received 4",
+      requirement: 6,
+      path: [
+        {
+          type: "object",
+          origin: "value",
+          input: {
+            name: "Ray",
+            age: 24,
+            pwd: "1234"
+          },
+          key: "pwd",
+          value: "1234"
+        }
+      ],
+      issues: undefined,
+      lang: undefined,
+      abortEarly: undefined,
+      abortPipeEarly: undefined
+    }
+  ]
+}
+```
+可以看到，报错信息中，我们得到了`success`，表明校验失败。  
+还有`issues`字段，它表示失败的具体原因。  
+- `kind`：错误类型
+- `type`：错误类型
+- `input`：输入的值
+- `expected`：预期的值
+- `received`：接收的值
+- `message`：错误信息
+- `requirement`：要求
+
+## 价值
+上面的例子不能直观感受到 Valibot 的价值，下面我们来看一个更复杂的例子。  
+```ts
+const UserSchema = v.object({
+  // 名字，最少2个字符，最多50个字符
+  name: v.pipe(v.string(), v.minLength(2), v.maxLength(50)),
+  // 年龄，最小1岁，最大124岁，必须是整数
+  age: v.pipe(v.number(), v.minValue(1), v.maxValue(124), v.integer()),
+  // 密码，最少6个字符
+  pwd: v.pipe(v.string(), v.minLength(6)),
+  // 邮箱，符合邮箱格式
+  email: v.pipe(v.string(), v.email())
+})
+```
+要编写和上面等价的校验器，我们至少需要以下代码：  
+
+```ts
+// 类型声明部分
+interface User {
+  name: string;
+  age: number;
+  pwd: string;
+  email: string;
+}
+
+// 运行时校验部分
+function validateUser(data: unknown): { valid: boolean; errors: string[]; value: User | null } {
+  const errors: string[] = [];
+  
+  // 首先检查是否为对象
+  if (!data || typeof data !== 'object') {
+    return { valid: false, errors: ['输入必须是一个对象'], value: null };
+  }
+  
+  const input = data as Record<string, unknown>;
+  const result: Partial<User> = {};
+  
+  // 检查 name 字段
+  if (typeof input.name !== 'string') {
+    errors.push('name 必须是字符串');
+  } else if (input.name.length < 2) {
+    errors.push('name 长度不能小于2个字符');
+  } else if (input.name.length > 50) {
+    errors.push('name 长度不能超过50个字符');
+  } else {
+    result.name = input.name;
+  }
+  
+  // 检查 age 字段
+  if (typeof input.age !== 'number') {
+    errors.push('age 必须是数字');
+  } else if (input.age < 1) {
+    errors.push('age 不能小于1');
+  } else if (input.age > 124) {
+    errors.push('age 不能大于124');
+  } else if (!Number.isInteger(input.age)) {
+    errors.push('age 必须是整数');
+  } else {
+    result.age = input.age;
+  }
+  
+  // 检查 pwd 字段
+  if (typeof input.pwd !== 'string') {
+    errors.push('pwd 必须是字符串');
+  } else if (input.pwd.length < 6) {
+    errors.push('pwd 长度不能小于6个字符');
+  } else {
+    result.pwd = input.pwd;
+  }
+  
+  // 检查 email 字段
+  if (typeof input.email !== 'string') {
+    errors.push('email 必须是字符串');
+  } else {
+    // 简单的邮箱格式验证
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(input.email)) {
+      errors.push('email 格式不正确');
+    } else {
+      result.email = input.email;
+    }
+  }
+  
+  return { 
+    valid: errors.length === 0, 
+    errors, 
+    value: errors.length === 0 ? result as User : null 
+  };
+}
+```
+
+可以看到，手动编写的验证代码非常冗长，而且容易出错。  
+使用 Valibot，我们只需要几行代码就能完成同样的功能，并且获得更好的类型推导和错误提示。
+
+## 类型守卫
+
+Valibot 提供了`is`函数，可以帮助我们进行类型守卫。  
+
+```ts
+import * as v from 'valibot';
+
+// 定义用户模式
+const UserSchema = v.object({
+  name: v.pipe(v.string(), v.minLength(2), v.maxLength(50)),
+  age: v.pipe(v.number(), v.minValue(1), v.maxValue(124), v.integer()),
+  pwd: v.pipe(v.string(), v.minLength(6)),
+  email: v.pipe(v.string(), v.email())
+});
+
+// 从模式中提取类型
+type User = v.InferInput<typeof UserSchema>;
+
+// 类型守卫函数
+function isUser(value: unknown): value is User {
+  return v.is(UserSchema, value);
+}
+
+// 使用类型守卫
+function processUserData(data: unknown) {
+  if (isUser(data)) {
+    // 在这个作用域内，TypeScript 知道 data 是 User 类型
+    console.log(`处理用户: ${data.name}, 年龄: ${data.age}`);
+    return true;
+  } else {
+    console.error('无效的用户数据');
+    return false;
+  }
+}
+
+// 示例
+const validUser = {
+  name: "张三",
+  age: 30,
+  pwd: "password123",
+  email: "zhangsan@example.com"
+};
+
+const invalidUser = {
+  name: "李",  // 名字太短
+  age: 150,    // 年龄超出范围
+  pwd: "123",  // 密码太短
+  email: "invalid-email"  // 邮箱格式不正确
+};
+
+processUserData(validUser);    // 输出: 处理用户: 张三, 年龄: 30
+processUserData(invalidUser);  // 输出: 无效的用户数据
+```
+
+通过使用 Valibot 的 `is` 函数，我们可以轻松创建类型守卫。  
+
+## 与 API 集成
+
+Valibot 特别适合用于验证 API 请求和响应：
+
+```ts
+import * as v from 'valibot';
+import axios from 'axios';
+
+// API 响应模式
+const UserResponseSchema = v.object({
+  id: v.string(),
+  name: v.pipe(v.string(), v.minLength(2)),
+  email: v.pipe(v.string(), v.email()),
+  createdAt: v.string() // ISO 日期字符串
+});
+
+type UserResponse = v.InferOutput<typeof UserResponseSchema>;
+
+// 安全地获取用户数据
+async function fetchUser(userId: string): Promise<UserResponse | null> {
+  try {
+    const response = await axios.get(`/api/users/${userId}`);
+    const result = v.safeParse(UserResponseSchema, response.data);
+    
+    if (result.success) {
+      return result.output;
+    } else {
+      console.error('API 返回了无效的用户数据:', result.issues);
+      return null;
+    }
+  } catch (error) {
+    console.error('获取用户数据失败:', error);
+    return null;
+  }
+}
+```
+
+这种方式确保了即使 API 返回了意外的数据格式，我们的应用也能优雅地处理，而不会崩溃。
+
+## 总结
+
+Valibot 为 TypeScript 项目提供了强大的运行时类型验证能力，它的优势包括：
+
+1. **简洁的 API**：相比手动编写验证代码，Valibot 的 API 更加简洁明了
+2. **类型安全**：自动从模式中推导出 TypeScript 类型
+3. **详细的错误信息**：提供清晰的错误信息，便于调试
+4. **类型守卫支持**：通过 `is` 函数轻松创建类型守卫
+5. **可组合性**：使用 `pipe` 等函数组合多个验证规则
+
+
+
