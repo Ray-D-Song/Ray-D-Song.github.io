@@ -1,0 +1,145 @@
+---
+title: '为脚本语言创建可执行文件的方法'
+date: '2025-4-16'
+tag: ['Node.js', 'Python', 'script language']
+cover: ''
+description: '本文介绍了一种为脚本语言创建可执行文件的通用思路，基于作者最近为轻量级JavaScript运行时「LLRT」添加构建可执行文件功能的经验总结而来'
+---
+
+`Python`、`JavaScript`等脚本语言，都需要一个运行时（runtime）来执行。  
+```bash
+python foo.py # 运行 Python 脚本
+node foo.js # 运行 JavaScript 脚本
+```
+所以脚本语言编写的程序基本都是源码分发，比如 Node.js 的 npx，但这要求用户的电脑上也有对应的运行环境。  
+又因为语言的API会发生改变，所以有时候需要安装多个版本。  
+比如工具A依赖Python 3.10，工具B依赖Python 3.11，这时候就需要安装两个版本的Python，这时又要引入一个管理多个版本的工具，比如 pyenv。  
+
+更好的方法是直接把脚本打包成可执行文件，这样用户就不需要安装运行时了。  
+
+## 思路
+目前已经有很多打包工具，比如Node.js 的 [Deno](https://deno.land/)、[pkgsrc](https://github.com/vercel/pkg) 和 Python 的 [PyInstaller](https://pyinstaller.org/)。  
+其思路基本都是：
+1. 提取一个干净的语言运行时，去掉不必要的功能以减少体积
+2. 将源码压缩，并嵌入到运行时的可执行文件中，并添加一个魔数，用于识别源码是否存在
+3. 修改运行时的执行逻辑，在启动时先通过魔数检查源码是否存在，如果存在则解压并执行，否则进入 REPL 或者直接报错
+
+## 为 LLRT 添加构建可执行文件的功能
+LLRT 是一个轻量级的 JavaScript 运行时，提供了不少 Node.js 的 API 的同时，体积只有 8MB 左右，相比 Node.js 的 100MB 小了很多，非常适合打包轻量级服务和CLI工具。  
+为了验证上面的思路，我为 LLRT 添加了构建可执行文件的功能。    
+
+[lexe 是一个基于 LLRT 的打包工具，支持将 Node.js 项目打包成可执行文件](https://github.com/Ray-D-Song/lexe)  
+
+下面是具体的实现过程：
+
+### 提取干净的语言运行时
+对于 LLRT，这部分可以省略，因为由JavaScript实现的标准库代码量并不多。  
+
+### 将源码压缩，并嵌入到运行时的可执行文件中
+这里我借助了 Deno 团队编写的 [libsui](https://github.com/denoland/libsui) 来实现。  
+libsui 是一个基于 Rust 语言的数据嵌入工具，支持将任意数据嵌入到可执行文件中，并在运行时提取出来。  
+对于不同的系统，libsui 会执行不同的操作：
+
+- Mac（Macho-O文件）：资源被添加为一个新Segment中的Section，并更新加载命令（Load Command）。
+- Linux（ELF文件）：资源直接被添加到文件末尾，还包含一个标签和魔数
+- Windows（PE文件）：资源被添加到资源段（Resource Section），运行时使用 `FindResource` 函数查找并使用 `LoadResource` 函数加载
+
+```rust
+if platform == &Platform::WindowsX64 {
+    PortableExecutable::from(&llrt_binary)?
+        .write_resource(SECTION_NAME, compiled.clone())?
+        .build(&mut output)?;
+    output.write_all(MAGIC_NUMBER.as_bytes())?;
+} else if platform == &Platform::LinuxX64 || platform == &Platform::LinuxArm64 {
+    Elf::new(&llrt_binary)
+        .append(SECTION_NAME, &compiled, &mut output)?;
+} else if platform == &Platform::DarwinX64 || platform == &Platform::DarwinArm64 {
+    Macho::from(llrt_binary)?
+        .write_section(SECTION_NAME, compiled.clone())?
+        .build_and_sign(&mut output)?;
+    output.write_all(MAGIC_NUMBER.as_bytes())?;
+}
+```
+
+### 修改运行时的执行逻辑
+在上一步中，对于Windows和macOS系统，我们在可执行文件的最后追加了一个魔数，用于识别源码是否存在。  
+对于Linux系统，libsui 已经添加了一个魔数，如果再添加一个，会导致 libsui 无法识别，所以直接使用 libsui 的魔数。  
+
+首先编写一个函数，用于检查魔数是否存在：
+```rust
+pub fn has_magic_number(platform: &Platform) -> std::io::Result<bool> {
+    let path = env::current_exe()?;
+    let mut file = File::open(path)?;
+
+    let file_size = file.metadata()?.len() as usize;
+    if file_size < 16 {  // 如果文件太小则可以认为没有源码
+        return Ok(false);
+    }
+
+    // 根据不同的平台，使用不同的方法检查魔数
+    match platform {
+        Platform::LinuxX64 | Platform::LinuxArm64 => {
+            // 对于 Linux 平台，libsui 在文件末尾添加了 16 字节的数据：魔数（4 字节）+ 哈希（4 字节）+ 大小（8 字节）
+            const TRAILER_LEN: i64 = 16;
+            file.seek(SeekFrom::End(-TRAILER_LEN))?;
+            let mut buf = [0; 4]; // 只读取魔数部分
+            file.read_exact(&mut buf)?;
+            
+            // 检查魔数（小端序）
+            let magic = u32::from_le_bytes(buf);
+            Ok(magic == LIBSUI_MAGIC_NUMBER)
+        },
+        _ => {
+            // 其他平台使用字符串魔数检测方法
+            let search_area_size = 1024.min(file_size);
+            let search_start = file_size.saturating_sub(search_area_size);
+
+            file.seek(SeekFrom::Start(search_start as u64))?;
+
+            let mut buffer = vec![0; search_area_size];
+            file.read_exact(&mut buffer)?;
+
+            // 搜索字符串魔数
+            // 从后往前搜索，因为魔数在文件末尾
+            for i in (0..search_area_size - MAGIC_NUMBER.len() + 1).rev() {
+                if &buffer[i..i + MAGIC_NUMBER.len()] == MAGIC_NUMBER.as_bytes() {
+                    return Ok(true);
+                }
+            }
+            Ok(false)
+        }
+    }
+}
+```
+值得注意的一点是，采用从后向前搜索，而不是对整个文件进行匹配，这样可以降低误匹配的概率并提高效率。  
+
+### 提取源码并执行
+如果魔数存在，则提取源码并执行。    
+```rust
+if has_magic_number {
+    // 提取源码
+    let code_binary = extract_code_binary();
+    if let Some(code_binary) = code_binary {
+        // 执行源码
+        vm.run_with(|ctx| {
+            let module = llrt_core::modules::require::loader::CustomLoader::load_bytecode_module(ctx.clone(), &code_binary)?;
+            module.eval()?;
+            Ok(())
+        }).await;
+    }
+} 
+```
+这里执行源码的方式是调用虚拟机实例，不同运行时暴露的 API 不同。  
+比如 Node.js 的虚拟机实例暴露的 API 是 `vm.run_with`，而 Python 的虚拟机实例暴露的 API 是 `vm.run`。  
+
+## 结语
+通过上面的步骤，我们成功为 LLRT 添加了构建可执行文件的功能。  
+剩下的工作就是添加 CLI 选项再编写一个 JS 包装器并发布。  
+
+因为 LLRT 的代码是基于 Rust 编写的，所以可以蹭 Deno 生态的工具，如果你希望为其他语言编写可执行文件，可以参考这个思路的同时，用别的工具替换 libsui。  
+或者你也可以参考 pyinstaller 的思路，在运行时将源码先解压到临时目录，然后执行。  
+
+## 参考
+- [Deno](https://deno.land/)
+- [PyInstaller](https://pyinstaller.org/)
+- [Inject RO data into existing executables](https://littledivy.com/sui.html)
