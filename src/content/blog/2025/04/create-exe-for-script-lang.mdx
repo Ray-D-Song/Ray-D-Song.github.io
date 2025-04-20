@@ -18,7 +18,7 @@ node foo.js # 运行 JavaScript 脚本
 更好的方法是直接把脚本打包成可执行文件，这样用户就不需要安装运行时了。  
 
 ## 思路
-目前已经有很多打包工具，比如Node.js 的 [Deno](https://deno.land/)、[pkgsrc](https://github.com/vercel/pkg) 和 Python 的 [PyInstaller](https://pyinstaller.org/)。  
+目前已经有很多打包工具，比如 JavaScript 的 [Deno](https://deno.land/)、[pkg](https://github.com/vercel/pkg) 和 Python 的 [PyInstaller](https://pyinstaller.org/)。  
 其思路基本都是：
 1. 提取一个干净的语言运行时，去掉不必要的功能以减少体积
 2. 将源码压缩，并嵌入到运行时的可执行文件中，并添加一个魔数，用于识别源码是否存在

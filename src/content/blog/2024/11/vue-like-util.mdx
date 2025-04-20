@@ -12,20 +12,18 @@ tag: ['JavaScript', 'Vue']
 调用形式如下：
 
 ```ts
-// will be resolve until ref.value === true or 1000ms passed
+// 阻塞当前方法直到 ref.value === true 或 1000ms 后
 await until(ref).toBe(true, { timeout: 1000 })
 ```
 
-这个方法可以解决许多工程难题，比如双 token 方案中，用户一次触发了多个请求，在第一个请求处执行 refreshToken 方法。  
-refreshToken 成功后，应该继续执行下面的请求。  
-为了实现这种效果有两个方案，一个是将后续请求设置后 callback，存储在一个数组中。但这样会涉及到参数传递和作用域之类复杂的中断恢复问题。  
-更好的方法就是使用 util 方法，在每次 fetch 前检查目前是否处于 blocked 状态，是的话就阻塞，直到 refresh 结束。
+这个方法可以解决许多工程难题，比如双 token 方案中，用户一次触发了多个请求，但是在第一个请求时 token 就过期了，此时应该发送刷新 token 的请求，并阻塞其他的请求，直到 token 刷新成功。  
 
 调用方式类似于：
 ```ts
 const status = reactive('idle')
 
 async function fetcher() {
+  // 阻塞其他请求的执行，直到 status 变为 idle
   await util(status, 'idle')
 
   // ...
@@ -40,7 +38,7 @@ async function fetcher() {
 }
 ```
 
-我希望实现一个框架无关的 util 方案，实现一个简单的值监听效果。  
+Vue 的 util 依赖于 Vue 的响应式系统，我希望实现一个框架无关的 util 方案，实现一个简单的值监听效果。  
 因为 util 是一个阻塞操作，所以应该返回一个 Promise。
 ```ts
 function util(reactive: unknown, targetValue: unknown) {
@@ -51,7 +49,7 @@ function util(reactive: unknown, targetValue: unknown) {
 ```
 问题来了，JavaScript 不包含`直到`这样的语义或 API，但我们可以监听 reactive 值的变化，将 resolve 作为回调传递，每次变化时对比新值和 targetValue 是否相等，相等的话就执行回调。
 
-为了实现这样一个监听器，我们可以参考 Vue，`@vue/reactivity`的核心是基于 Proxy 的写入和读取代理。  
+为了实现这样一个监听器，我们可以参考 Vue，Vue 的响应式库 `@vue/reactivity` 的核心是基于 Proxy 的写入和读取代理。  
 首先编写一个 reactive 包装函数，接收初始值，返回一个被代理的对象：
 ```ts
 function reactive<T>(value: T): Reactive<T> {
