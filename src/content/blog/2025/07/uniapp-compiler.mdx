@@ -1,0 +1,65 @@
+---
+title: 'uni-app 编译分析'
+date: '2025-7-2'
+tag: ['uni-app', 'vue', 'vue-cli']
+cover: ''
+description: '从源码角度解析 uni-app 的编译流程'
+---
+
+# uni-app 编译分析
+
+目前已经有不少文章对 uni-app 的编译流程进行了分析，但大多数都是关于 Vue SFC 如何编译为微信小程序的 WXML/WXSS/JS 文件。很少有文章会从源码角度解析其整个流程。  
+最近越发难以忍受基于 WebPack 的 Vue2 uni-app，因此决定基于 RsPack 重新实现 uni-app（以插件形式），分析其整个流程就非常重要了。
+
+> 我们以微信小程序为例，这也是 uni-app 最常用的平台。
+
+当执行 `pnpm run build:mp-weixin` 命令时，实际发生了以下步骤：
+
+1.  **环境变量设置**: `cross-env NODE_ENV=production UNI_PLATFORM=mp-weixin` 会设置两个关键环境变量：
+    *   `NODE_ENV=production`: 确保构建在生产模式下进行，启用相应的优化和压缩。
+    *   `UNI_PLATFORM=mp-weixin`: 明确指定目标平台为微信小程序。这是 `uni-app` 插件识别并应用小程序特有配置的关键。
+
+2.  **Vue CLI 服务启动**: `vue-cli-service uni-build` 命令启动 Vue CLI 服务，并指示其执行 `uni-build` 命令。
+
+这里可以展开讲讲，vue-cli 有一套[插件机制](https://cli.vuejs.org/zh/dev-guide/plugin-dev.html)，其中有一类[service](https://cli.vuejs.org/zh/dev-guide/plugin-dev.html#service-%E6%8F%92%E4%BB%B6)插件，可以通过 `vue-cli-service` 命令来启动，uni-app 插件就是这样实现的。
+
+3.  **加载 `vue-cli-plugin-uni` 插件**: Vue CLI 服务会加载 `vue-cli-plugin-uni` 插件。该插件的入口文件 `packages/vue-cli-plugin-uni/index.js` 会被执行。
+
+4.  **注册 `uni-build` 命令**: 在 `index.js` 中，`api.registerCommand('uni-build', ...)` 会注册 `uni-build` 命令的回调函数。当 `vue-cli-service uni-build` 被调用时，该回调函数会被触发。
+
+5.  **执行 `build.js` 中的 `build` 函数**: `uni-build` 命令的回调函数（位于 `packages/vue-cli-plugin-uni/commands/build.js`）是核心执行逻辑。它会调用 `async function build(args, api, options)` 函数来启动实际的构建过程。
+
+6.  **获取基础 Webpack 配置**: 在 `build` 函数内部，会调用 `getWebpackConfigs`（最终调用 `getWebpackConfig`）来获取一个基础的 Webpack 配置。这个基础配置是基于 Vue CLI 的默认配置和项目的 `vue.config.js` 文件生成的。
+
+7.  **应用微信小程序平台特有配置**: 这是最关键的一步。`vue-cli-plugin-uni` 插件通过 `api.configureWebpack` 和 `api.chainWebpack` 方法，加载并应用 `packages/vue-cli-plugin-uni/lib/mp/index.js` 中定义的针对微信小程序平台的 Webpack 配置和插件。这些配置包括：
+    *   **入口和输出**: 设置小程序特有的入口文件（如 `app.json` 和 `pages.json` 解析出的页面/组件入口）和输出路径。
+    *   **模块解析**: 配置 `.js`, `.vue`, `.json` 等文件的解析规则，以及路径别名。
+    *   **Loader 配置**: 为 `.vue` 文件配置 `vue-loader`，并传入小程序特有的 `compilerOptions`；为样式文件配置 `mini-css-extract-plugin`、`css-loader`、`postcss-loader` 等；为 JavaScript 文件配置 `babel-loader`。
+    *   **插件集成**: 引入一系列核心插件，例如：
+        *   `WebpackUniAppPlugin`: 处理 `uni-app` 特有逻辑，如页面和组件的转换。
+        *   `WebpackUniMPPlugin` (通过 `createUniMPPlugin()`): 针对小程序平台的 Webpack 插件，负责将 Vue/uni-app 代码转换为微信小程序原生代码结构（`wxml`, `wxss`, `js`, `json`）。
+        *   `webpack.DefinePlugin`: 定义全局常量，注入 `process.env.NODE_ENV` 和 `process.env.UNI_PLATFORM` 等。
+        *   `CopyWebpackPlugin`: 复制静态资源。
+        *   `MiniCssExtractPlugin`: 提取 CSS 到单独文件。
+        *   `webpack.ProvidePlugin`: 自动注入 `uni` 和 `uniCloud` 等全局对象。
+        *   `PreprocessAssetsPlugin`: 处理构建产物中的 `wxss` 和 `js` 文件，例如添加公共 `runtime` 和 `vendor` 引用。
+    *   **优化和压缩**: 在生产环境下，对 CSS 和 JavaScript 进行优化和压缩。
+
+8.  **执行 Webpack 编译**: `build` 函数使用最终合并了基础配置和微信小程序特有配置的 Webpack 配置对象，调用 `webpack` 包进行实际的代码编译和打包。
+
+9.  **输出构建产物**: Webpack 将编译后的微信小程序代码（包含 `wxml`, `wxss`, `js`, `json` 文件以及其他资源）输出到指定的构建目录（通常是 `dist/build/mp-weixin`）。
+
+简而言之，`build:mp-weixin` 命令是一个高度自动化的构建流程，它通过 Vue CLI 和 `uni-app` 插件的协同工作，将 `uni-app` 项目的源代码转换并优化为符合微信小程序运行规范的最终代码。
+
+# 其他配置
+uni-app 项目相较于标准的 Vue Web 项目，还有一些特殊的文件，这些也影响了构建：
+
+* `pages.json`：页面配置文件，用于配置路由、窗口表现、底部 tab 等。
+* `manifest.json`：应用配置文件，用于配置应用名称、版本、权限等。
+* `postcss.config.js`：PostCSS 配置文件，用于配置 PostCSS 插件，这个在 Web 项目中也有，但 uni-app 还有一个 `@dcloudio/vue-cli-plugin-uni/packages/postcss`。主要用于处理各平台的样式兼容问题。
+* `babel.config.js`：Babel 配置文件，用于配置 Babel 插件，这个在 Web 项目中也有，但 uni-app 还有一个 `@dcloudio/vue-cli-plugin-uni/packages/babel`。主要也是处理兼容性问题（真坑啊）
+* `uni.promisify.adaptor.js`：这玩意用来把 uni-app 早期设计的那些基于回调的 API 转换为 Promise 风格的 API。
+
+# 总结
+uni-app 虽然对 Vue 的运行时也进行了魔改，但核心还是这套编译机制。  
+这大概会是个系列文章，逐步分析这套编译机制和我的移植过程。  
